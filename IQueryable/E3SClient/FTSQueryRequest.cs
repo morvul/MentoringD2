@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Sample03.E3SClient
+namespace IQueryable.E3SClient
 {
 	[JsonObject]
 	public class Statement

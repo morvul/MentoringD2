@@ -6,8 +6,8 @@
     <ProjectGuid>{4B096486-7457-4911-8280-7BA7A2BB45A0}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Sample03</RootNamespace>
-    <AssemblyName>Sample03</AssemblyName>
+    <RootNamespace>IQueryable</RootNamespace>
+    <AssemblyName>IQueryable</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>

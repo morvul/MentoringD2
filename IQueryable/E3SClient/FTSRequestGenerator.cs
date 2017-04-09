@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Sample03.E3SClient
+namespace IQueryable.E3SClient
 {
 	public class FtsRequestGenerator
 	{

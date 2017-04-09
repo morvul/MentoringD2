@@ -1,4 +1,4 @@
-﻿using Sample03.E3SClient;
+﻿using IQueryable.E3SClient;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -7,7 +7,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Sample03
+namespace IQueryable
 {
 	public class E3SEntitySet<T> : IQueryable<T> where T : E3SEntity
 	{

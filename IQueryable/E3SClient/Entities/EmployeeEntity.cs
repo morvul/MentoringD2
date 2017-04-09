@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace Sample03.E3SClient.Entities
+namespace IQueryable.E3SClient.Entities
 {
 	public class Skills
 	{

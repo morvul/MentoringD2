@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Sample03
+namespace IQueryable
 {
 	internal static class TypeHelper
 	{

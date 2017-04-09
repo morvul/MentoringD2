@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Sample02")]
+[assembly: AssemblyTitle("IQueryable")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("EPAM Systems")]
-[assembly: AssemblyProduct("Sample02")]
+[assembly: AssemblyProduct("IQueryable")]
 [assembly: AssemblyCopyright("Copyright © EPAM Systems 2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("95d73943-2a19-4dd4-a616-a264d6ef5f8c")]
+[assembly: Guid("4b096486-7457-4911-8280-7ba7a2bb45a0")]
 
 // Version information for an assembly consists of the following four values:
 //

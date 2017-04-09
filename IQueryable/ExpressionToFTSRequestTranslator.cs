@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
-namespace Sample03
+namespace IQueryable
 {
     public class ExpressionToFtsRequestTranslator : ExpressionVisitor
     {

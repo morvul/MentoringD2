@@ -7,7 +7,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using Newtonsoft.Json;
 
-namespace Sample03.E3SClient
+namespace IQueryable.E3SClient
 {
     public class E3SQueryClient
     {

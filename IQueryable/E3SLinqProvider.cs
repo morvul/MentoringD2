@@ -1,9 +1,9 @@
-﻿using Sample03.E3SClient;
+﻿using IQueryable.E3SClient;
 using System;
 using System.Linq;
 using System.Linq.Expressions;
 
-namespace Sample03
+namespace IQueryable
 {
 	public class E3SLinqProvider : IQueryProvider
 	{
@@ -14,7 +14,7 @@ namespace Sample03
 			_e3SClient = client;
 		}
 
-		public IQueryable CreateQuery(Expression expression)
+		public System.Linq.IQueryable CreateQuery(Expression expression)
 		{
 			throw new NotImplementedException();
 		}

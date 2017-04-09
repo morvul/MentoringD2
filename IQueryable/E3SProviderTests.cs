@@ -1,11 +1,11 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Sample03.E3SClient.Entities;
-using Sample03.E3SClient;
+using IQueryable.E3SClient.Entities;
+using IQueryable.E3SClient;
 using System.Configuration;
 using System.Linq;
 
-namespace Sample03
+namespace IQueryable
 {
     [TestClass]
     public class E3SProviderTests
