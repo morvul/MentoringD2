@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -37,18 +39,21 @@ namespace AdvancedXML
         }
 
 
-        private string GetTask1ResultMessage(ValidationResult result, string fileName)
+        private string GetTask1ResultMessage(List<ValidationResult> errors, string fileName)
         {
             var message = new StringBuilder();
             message.Append($"{fileName} - ");
-            if (result.IsValid)
+            if (!errors.Any())
             {
                 message.AppendLine("Is Valid");
             }
             else
             {
                 message.AppendLine("Is Invalid");
-                message.AppendLine($"(line {result.ErrorLine}) {result.Message}");
+                foreach (var error in errors)
+                {
+                    message.AppendLine($"(line {error.ErrorLine}:{error.ErrorPosition}) {error.Message}");
+                }
             }
 
             return message.ToString();

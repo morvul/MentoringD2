@@ -6,6 +6,6 @@
 
         public string Message { get; set; }
 
-        public bool IsValid => string.IsNullOrEmpty(Message) && ErrorLine == null;
+        public int ErrorPosition { get; set; }
     }
 }
