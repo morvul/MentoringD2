@@ -5,6 +5,8 @@ VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IQueryable", "IQueryable\IQueryable.csproj", "{4B096486-7457-4911-8280-7BA7A2BB45A0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdvancedXML", "AdvancedXML\AdvancedXML.csproj", "{95E41D9F-A972-47C1-8774-14B1CE2CA3C3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{4B096486-7457-4911-8280-7BA7A2BB45A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4B096486-7457-4911-8280-7BA7A2BB45A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4B096486-7457-4911-8280-7BA7A2BB45A0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{95E41D9F-A972-47C1-8774-14B1CE2CA3C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{95E41D9F-A972-47C1-8774-14B1CE2CA3C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{95E41D9F-A972-47C1-8774-14B1CE2CA3C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{95E41D9F-A972-47C1-8774-14B1CE2CA3C3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
