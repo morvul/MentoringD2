@@ -1,71 +1,132 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 
 namespace Sample03
 {
-	public class ExpressionToFtsRequestTranslator : ExpressionVisitor
-	{
-		StringBuilder _resultString;
+    public class ExpressionToFtsRequestTranslator : ExpressionVisitor
+    {
+        string _constant;
+        string _member;
+        bool _isStartWithFilter;
+        bool _isEndWithFilter;
+        List<string> _requestParts;
 
-		public string Translate(Expression exp)
-		{
-			_resultString = new StringBuilder();
-			Visit(exp);
+        public List<string> Translate(Expression exp)
+        {
+            _constant = "";
+            _member = "";
+            _isStartWithFilter = false;
+            _isEndWithFilter = false;
+            _requestParts = new List<string>();
+            
+            Visit(exp);
 
-			return _resultString.ToString();
-		}
+            return _requestParts;
+        }
 
-		protected override Expression VisitMethodCall(MethodCallExpression node)
-		{
-			if (node.Method.DeclaringType == typeof(Queryable)
-				&& node.Method.Name == "Where")
-			{
-				var predicate = node.Arguments[1];
-				Visit(predicate);
+        private string GetRequest()
+        {
+            string request = "";
+            if (_member.Length > 0)
+            {
+                request = $"{_member}:({(_isEndWithFilter ? "*" : "")}{_constant}{(_isStartWithFilter ? "*" : "")})";
+            }
 
-				return node;
-			}
-			return base.VisitMethodCall(node);
-		}
+            _isEndWithFilter = false;
+            _isStartWithFilter = false;
+            _member = "";
+            _constant = "";
 
-		protected override Expression VisitBinary(BinaryExpression node)
-		{
-			switch (node.NodeType)
-			{
-				case ExpressionType.Equal:
-					if (node.Left.NodeType != ExpressionType.MemberAccess)
-						throw new NotSupportedException(string.Format("Left operand should be property or field"));
+            return request;
+        }
 
-					if (node.Right.NodeType != ExpressionType.Constant)
-						throw new NotSupportedException(string.Format("Right operand should be constant"));
+        protected override Expression VisitMethodCall(MethodCallExpression node)
+        {
+            if (node.Method.DeclaringType == typeof(Queryable)
+                && node.Method.Name == "Where")
+            {
+                var predicate = node.Arguments[1];
+                Visit(predicate);
+                AddRequestPart();
+                return node;
+            }
 
-					Visit(node.Left);
-					_resultString.Append("(");
-					Visit(node.Right);
-					_resultString.Append(")");
-					break;
+            if (node.Method.DeclaringType == typeof(string)
+                && node.Method.Name == "StartsWith")
+            {
+                base.VisitMethodCall(node);
+                _isStartWithFilter = true;
+                return node;
+            }
 
-				default:
-					throw new NotSupportedException(string.Format("Operation {0} is not supported", node.NodeType));
-			};
+            if (node.Method.DeclaringType == typeof(string)
+                && node.Method.Name == "Contains")
+            {
+                base.VisitMethodCall(node);
+                _isStartWithFilter = true;
+                _isEndWithFilter = true;
+                return node;
+            }
 
-			return node;
-		}
+            if (node.Method.DeclaringType == typeof(string)
+                && node.Method.Name == "EndsWith")
+            {
+                base.VisitMethodCall(node);
+                _isEndWithFilter = true;
+                return node;
+            }
 
-		protected override Expression VisitMember(MemberExpression node)
-		{
-			_resultString.Append(node.Member.Name).Append(":");
+            return base.VisitMethodCall(node);
+        }
 
-			return base.VisitMember(node);
-		}
+        protected override Expression VisitBinary(BinaryExpression node)
+        {
+            switch (node.NodeType)
+            {
+                case ExpressionType.Equal:
+                    if (!(node.Left.NodeType == ExpressionType.MemberAccess && node.Right.NodeType == ExpressionType.Constant)
+                     && !(node.Right.NodeType == ExpressionType.MemberAccess && node.Left.NodeType == ExpressionType.Constant))
+                        throw new NotSupportedException("Expression should contain a constant and property or field");
+                    Visit(node.Left);
+                    Visit(node.Right);
+                    break;
 
-		protected override Expression VisitConstant(ConstantExpression node)
-		{
-			_resultString.Append(node.Value);
+                case ExpressionType.AndAlso:
+                    Visit(node.Left);
+                    AddRequestPart();
+                    
+                    Visit(node.Right);
+                    AddRequestPart();
 
-			return node;
-		}
-	}
+                    break;
+
+                default:
+                    throw new NotSupportedException(string.Format("Operation {0} is not supported", node.NodeType));
+            }
+
+            return node;
+        }
+        private void AddRequestPart()
+        {
+            var requestPart = GetRequest();
+            if (requestPart.Length > 0)
+            {
+                _requestParts.Add(requestPart);
+            }
+        }
+
+        protected override Expression VisitMember(MemberExpression node)
+        {
+            _member = node.Member.Name;
+            return base.VisitMember(node);
+        }
+
+        protected override Expression VisitConstant(ConstantExpression node)
+        {
+            _constant = node.Value.ToString();
+            return node;
+        }
+    }
 }

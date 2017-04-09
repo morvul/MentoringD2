@@ -1,20 +1,17 @@
 ﻿using Sample03.E3SClient;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Sample03
 {
 	public class E3SLinqProvider : IQueryProvider
 	{
-		private E3SQueryClient e3sClient;
+		private readonly E3SQueryClient _e3SClient;
 
 		public E3SLinqProvider(E3SQueryClient client)
 		{
-			e3sClient = client;
+			_e3SClient = client;
 		}
 
 		public IQueryable CreateQuery(Expression expression)
@@ -37,9 +34,9 @@ namespace Sample03
 			var itemType = TypeHelper.GetElementType(expression.Type);
 
 			var translator = new ExpressionToFtsRequestTranslator();
-			var queryString = translator.Translate(expression);
+			var queryParts = translator.Translate(expression);
 
-			return (TResult)(e3sClient.SearchFTS(itemType, queryString));
+			return (TResult)(_e3SClient.SearchFts(itemType, queryParts));
 		}
 	}
 }

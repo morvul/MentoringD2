@@ -2,49 +2,42 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Sample03.E3SClient
 {
-	public class FTSRequestGenerator
+	public class FtsRequestGenerator
 	{
-		private readonly UriTemplate FTSSearchTemplate = new UriTemplate(@"data/searchFts?metaType={metaType}&query={query}&fields={fields}");
-		private readonly Uri BaseAddress;
+		private readonly UriTemplate _ftsSearchTemplate = new UriTemplate(@"data/searchFts?metaType={metaType}&query={query}&fields={fields}");
+		private readonly Uri _baseAddress;
 
-		public FTSRequestGenerator(string baseAddres) : this(new Uri(baseAddres))
+		public FtsRequestGenerator(string baseAddres) : this(new Uri(baseAddres))
 		{
 		}
 
-		public FTSRequestGenerator(Uri baseAddress)
+		public FtsRequestGenerator(Uri baseAddress)
 		{
-			BaseAddress = baseAddress;
+			_baseAddress = baseAddress;
 		}
 
-		public Uri GenerateRequestUrl<T>(string query = "*", int start = 0, int limit = 10)
+		public Uri GenerateRequestUrl<T>(List<string> queryParts, int start = 0, int limit = 10)
 		{
-			return GenerateRequestUrl(typeof(T), query, start, limit);
+			return GenerateRequestUrl(typeof(T), queryParts, start, limit);
 		}
 
-		public Uri GenerateRequestUrl(Type type, string query = "*", int start = 0, int limit = 10)
+		public Uri GenerateRequestUrl(Type type, List<string> queryParts, int start = 0, int limit = 10)
 		{
 			string metaTypeName = GetMetaTypeName(type);
 
 			var ftsQueryRequest = new FTSQueryRequest
 			{
-				Statements = new List<Statement>
-				{
-					new Statement {
-						Query = query
-					}
-				},
+				Statements = queryParts.Select(queryPart => new Statement { Query = queryPart }).ToList(),
 				Start = start,
 				Limit = limit
 			};
 
 			var ftsQueryRequestString = JsonConvert.SerializeObject(ftsQueryRequest);
 
-			var uri = FTSSearchTemplate.BindByName(BaseAddress,
+			var uri = _ftsSearchTemplate.BindByName(_baseAddress,
 				new Dictionary<string, string>()
 				{
 					{ "metaType", metaTypeName },
