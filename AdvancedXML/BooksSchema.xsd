@@ -1,9 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<xs:schema id="booksSchema"
-    targetNamespace="http://library.by/catalog"
-    elementFormDefault="qualified"
-    xmlns="http://library.by/catalog"
-    xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<xs:schema id="booksSchema" targetNamespace="http://library.by/catalog" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:annotation>
     <xs:documentation>Books content</xs:documentation>
   </xs:annotation>

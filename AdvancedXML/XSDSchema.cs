@@ -3,7 +3,7 @@ using System.Xml;
 
 namespace AdvancedXML
 {
-    public class XmlProcess
+    public class XsdSchema
     {
         public List<ValidationResult> XmlValidation(string xmlFileName, string xsdSchemaFileName)
         {

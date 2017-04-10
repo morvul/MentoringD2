@@ -51,10 +51,12 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="XmlProcessTests.cs" />
+    <Compile Include="XsltRssTests.cs" />
+    <Compile Include="XsdSchemaTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ValidationResult.cs" />
-    <Compile Include="XmlProcess.cs" />
+    <Compile Include="XsdSchema.cs" />
+    <Compile Include="XsltRss.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="BooksSchema.xsd">
@@ -64,6 +66,7 @@
   <ItemGroup>
     <Content Include="Books.xml" />
     <Content Include="BooksInvalid.xml" />
+    <Content Include="BooksRssTemplate.xslt" />
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

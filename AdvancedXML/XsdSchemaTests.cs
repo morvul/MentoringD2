@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace AdvancedXML
 {
     [TestClass]
-    public class XmlProcessTests
+    public class XsdSchemaTests
     {
         private const string SchemaFileName = @"BooksSchema.xsd";
         private const string ValidXmlFileName = @"Books.xml";
@@ -17,7 +17,7 @@ namespace AdvancedXML
         [TestMethod]
         public void XsdShcemaValidTask1()
         {
-            var xmlProcess = new XmlProcess();
+            var xmlProcess = new XsdSchema();
             var fullXmlPath = Path.Combine(@"..\..", ValidXmlFileName);
             var fullXsdPath = Path.Combine(@"..\..", SchemaFileName);
             var result = xmlProcess.XmlValidation(fullXmlPath, fullXsdPath);
@@ -29,7 +29,7 @@ namespace AdvancedXML
         [TestMethod]
         public void XsdShcemaInvalidTask1()
         {
-            var xmlProcess = new XmlProcess();
+            var xmlProcess = new XsdSchema();
             var fullXmlPath = Path.Combine(@"..\..", InvalidXmlFileName);
             var fullXsdPath = Path.Combine(@"..\..", SchemaFileName);
             var result = xmlProcess.XmlValidation(fullXmlPath, fullXsdPath);
