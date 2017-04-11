@@ -13,7 +13,7 @@
              return(DateTime.Now.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'Z'"));
           }
          ]]>
-      </msxsl:script>
+  </msxsl:script>
   <xsl:template match="/bk:catalog">
     <feed>
       <title>New arrivals</title>

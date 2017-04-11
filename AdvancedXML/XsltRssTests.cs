@@ -9,8 +9,6 @@ namespace AdvancedXML
     {
         private const string XmlFileName = @"Books.xml";
         private const string XsltFileName = @"BooksRssTemplate.xslt";
-        private const string HtmlFileName = @"BooksRSS.html";
-
 
         [TestMethod]
         public void XmlToRssTask2()
@@ -18,9 +16,7 @@ namespace AdvancedXML
             var xmlProcess = new XsltRss();
             var fullXmlPath = Path.Combine(@"..\..", XmlFileName);
             var fullXsltPath = Path.Combine(@"..\..", XsltFileName);
-            var fullHtmlPath = Path.Combine(@"..\..", HtmlFileName); 
             var htmlText = xmlProcess.XmlToRss(fullXmlPath, fullXsltPath);
-            File.WriteAllText(fullHtmlPath, htmlText);
             Console.Write(htmlText);
         }
     }

@@ -51,6 +51,8 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="XsltHtml.cs" />
+    <Compile Include="XsltHtmlTests.cs" />
     <Compile Include="XsltRssTests.cs" />
     <Compile Include="XsdSchemaTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -67,6 +69,7 @@
     <Content Include="Books.xml" />
     <Content Include="BooksInvalid.xml" />
     <Content Include="BooksRssTemplate.xslt" />
+    <Content Include="BooksHtmlTemplate.xslt" />
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
