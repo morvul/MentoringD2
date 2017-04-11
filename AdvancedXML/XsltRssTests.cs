@@ -13,7 +13,7 @@ namespace AdvancedXML
 
 
         [TestMethod]
-        public void XsdShcemaValidTask1()
+        public void XmlToRssTask2()
         {
             var xmlProcess = new XsltRss();
             var fullXmlPath = Path.Combine(@"..\..", XmlFileName);

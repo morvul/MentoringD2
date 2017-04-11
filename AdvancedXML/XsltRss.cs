@@ -13,7 +13,7 @@ namespace AdvancedXML
             try
             {
                 XslCompiledTransform xslt = new XslCompiledTransform();
-                xslt.Load(xsltFileName);
+                xslt.Load(xsltFileName, new XsltSettings(false, true), new XmlUrlResolver());
                 using (StringWriter sw = new StringWriter())
                 using (XmlWriter writerHtml = XmlWriter.Create(sw, xslt.OutputSettings))
                 {

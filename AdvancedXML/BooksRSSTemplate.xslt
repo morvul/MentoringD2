@@ -1,26 +1,51 @@
 ﻿<xsl:stylesheet version="1.0"
+  xmlns="http://www.w3.org/2005/Atom"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   xmlns:bk="http://library.by/catalog"
-  xmlns:atom="http://www.w3.org/2005/Atom"
-  exclude-result-prefixes="bk">
-  <xsl:output method="xml" indent="yes" cdata-section-elements="atom:content"/>
+  xmlns:msxsl="urn:schemas-microsoft-com:xslt"
+  xmlns:cs="urn:cs"
+  exclude-result-prefixes="bk cs msxsl">
+  <xsl:output method="xml" indent="yes"/>
+  <msxsl:script language="C#" implements-prefix="cs">
+         <![CDATA[
+          public string datenow()
+          {
+             return(DateTime.Now.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'Z'"));
+          }
+         ]]>
+      </msxsl:script>
   <xsl:template match="/bk:catalog">
-    <xsl:element name="feed">
+    <feed>
+      <title>New arrivals</title>
+      <subtitle>List of our new books</subtitle>
+      <link href="http://library.by/catalog"/>
+      <updated>
+        <xsl:value-of select="cs:datenow()"/>
+      </updated>
       <xsl:apply-templates />
-    </xsl:element>
+    </feed>
   </xsl:template>
 
   <xsl:template match="/bk:catalog/bk:book">
-    <xsl:element name="news">
-      <xsl:element name="date">
+    <entry>
+      <title>
+        <xsl:value-of select="bk:title"/>
+      </title>
+      <author>
+        <xsl:value-of select="bk:author"/>
+      </author>
+      <updated>
         <xsl:value-of select="bk:registration_date"/>
-        <xsl:apply-templates />
-      </xsl:element>
-    </xsl:element>
+      </updated>
+      <summary>
+         <xsl:value-of select="bk:description"/>
+      </summary>
+      <xsl:apply-templates />
+    </entry>
   </xsl:template>
 
   <xsl:template match="/bk:catalog/bk:book/bk:isbn">
-    <xsl:element name="ref">
+    <xsl:element name="link">
       <xsl:text>http://my.safaribooksonline.com/</xsl:text>
       <xsl:apply-templates />
     </xsl:element>
