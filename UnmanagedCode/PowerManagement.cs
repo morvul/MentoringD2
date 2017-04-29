@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace UnmanagedCode
 {
+    [ComVisible(true)]
     public static class PowerManagement
     {
         #region Structs
@@ -22,6 +23,7 @@ namespace UnmanagedCode
             ReserveHiberFile = 1,
         }
 
+        [ComVisible(true)]
         [StructLayout(LayoutKind.Sequential)]
         public struct SystemBatteryState
         {
@@ -141,7 +143,7 @@ namespace UnmanagedCode
             return HiberFileControl(HiberFileOperation.RemoveHiberFile);
         }
 
-        public static bool HiberFileControl(HiberFileOperation operation)
+        private static bool HiberFileControl(HiberFileOperation operation)
         {
             var inputBufferSize = sizeof (HiberFileOperation);
             var inputBuffer = Marshal.AllocHGlobal(inputBufferSize);
