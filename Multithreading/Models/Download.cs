@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Net;
 
 namespace Multithreading.Models
@@ -23,5 +24,7 @@ namespace Multithreading.Models
         public string DestinationPath { get; set; }
 
         public string FileName { get; set; }
+
+        public string DestinationalFile => Path.Combine(DestinationPath, FileName);
     }
 }

@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Net;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using Multithreading.ViewModels;
 
@@ -26,7 +27,6 @@ namespace Multithreading
             {
                 var download = DownloadManager.CreateDownload(newDownloadWindow.FilePath.Text, newDownloadWindow.DestinationPath.Text);
                 var downloadViewModel = new DownloadViewModel(download);
-                _viewModel.Downloads.Add(downloadViewModel);
                 if (download.HasError)
                 {
                     Dispatcher.BeginInvoke((Action)delegate
@@ -36,6 +36,7 @@ namespace Multithreading
                     return;
                 }
 
+                _viewModel.Downloads.Add(downloadViewModel);
                 download.WebClient.DownloadProgressChanged += client_DownloadProgressChanged;
                 download.WebClient.DownloadFileCompleted += client_DownloadFileCompleted;
                 DownloadManager.StartDownload(download, downloadViewModel);
@@ -58,9 +59,18 @@ namespace Multithreading
         }
         void client_DownloadFileCompleted(object sender, AsyncCompletedEventArgs e)
         {
+            var download = e.UserState as DownloadViewModel;
+            if (e.Cancelled)
+            {
+                Dispatcher.BeginInvoke((Action) delegate
+                {
+                    _viewModel.Downloads.Remove(download);
+                });
+                return;
+            }
+
             if (e.Error != null)
             {
-                var download = e.UserState as DownloadViewModel;
                 if (download != null)
                 {
                     download.ErrorMessage = e.Error.InnerException?.Message ?? e.Error.Message;
@@ -81,6 +91,13 @@ namespace Multithreading
             {
                 Process.Start(download.DestinationPath);
             }
+        }
+
+        private void CancelDownloadCommand_Click(object sender, RoutedEventArgs e)
+        {
+            var button = sender as Button;
+            var download = button?.DataContext as DownloadViewModel;
+            DownloadManager.AbortDownload(download.Model);
         }
     }
 }

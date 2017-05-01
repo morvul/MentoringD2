@@ -21,8 +21,7 @@ namespace Multithreading
         {
             var thread = new Thread(() =>
             {
-                var resultFile = Path.Combine(download.DestinationPath, download.FileName);
-                download.WebClient.DownloadFileAsync(download.SourcePath, resultFile,
+                download.WebClient.DownloadFileAsync(download.SourcePath, download.DestinationalFile,
                     listener);
             });
             thread.Start();
@@ -43,6 +42,13 @@ namespace Multithreading
             }
 
             download.FileName = fileName;
+        }
+
+        public static void AbortDownload(Download download)
+        {
+            download.WebClient.CancelAsync();
+            download.WebClient.DownloadFileCompleted += (sender, e) =>
+                File.Delete(download.DestinationalFile);
         }
     }
 }

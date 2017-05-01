@@ -41,13 +41,16 @@ namespace Multithreading.ViewModels
                     _download.ErrorMessage = value;
                     OnPropertyChanged();
                     OnPropertyChanged(nameof(ProgressMessage));
+                    OnPropertyChanged(nameof(IsInProgress));
                 }
             }
         }
 
         public bool HasError => ErrorMessage != null;
 
-        public WebClient WebClient { get; set; }
+        public bool IsInProgress => Progress < 100 && !HasError;
+
+        public WebClient WebClient => _download.WebClient;
 
         public Uri FileUri { get; set; }
 
@@ -61,14 +64,17 @@ namespace Multithreading.ViewModels
                     _download.Progress = value;
                     OnPropertyChanged();
                     OnPropertyChanged(nameof(ProgressMessage));
+                    OnPropertyChanged(nameof(IsInProgress));
                 }
             }
         }
 
         public string ProgressMessage =>
             ErrorMessage != null ? "Error" :
-            (_download.Progress < 100 ? $"{_download.Progress:0.00}%" : "Done");
+            (_download.Progress < 100 ? $"{_download.Progress:0.##}%" : "Done");
 
         public string DestinationPath => _download.DestinationPath;
+
+        public Download Model => _download;
     }
 }
