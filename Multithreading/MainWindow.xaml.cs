@@ -12,20 +12,27 @@ namespace Multithreading
     public partial class MainWindow
     {
         private readonly MainWindowViewModel _viewModel;
+        private readonly NewDownloadViewModel _downloadViewModel;
+        private readonly QueueManagerViewModel _queueManagerViewModel;
 
         public MainWindow()
         {
             _viewModel = new MainWindowViewModel();
+            _queueManagerViewModel = new QueueManagerViewModel();
+            _downloadViewModel = new NewDownloadViewModel(_queueManagerViewModel.Queues);
             DataContext = _viewModel;
             InitializeComponent();
         }
 
         private void NewDownloadCommand_OnClick(object sender, RoutedEventArgs e)
         {
-            var newDownloadWindow = new NewDownload();
+            var newDownloadWindow = new NewDownload(_downloadViewModel);
             if (newDownloadWindow.ShowDialog() == true)
             {
-                var download = DownloadManager.CreateDownload(newDownloadWindow.FilePath.Text, newDownloadWindow.DestinationPath.Text);
+                var download = DownloadManager.CreateDownload(
+                    newDownloadWindow.FilePath.Text,
+                    newDownloadWindow.DestinationPath.Text,
+                    _downloadViewModel.SelectedQueue.Model);
                 var downloadViewModel = new DownloadViewModel(download);
                 if (download.HasError)
                 {
@@ -97,7 +104,13 @@ namespace Multithreading
         {
             var button = sender as Button;
             var download = button?.DataContext as DownloadViewModel;
-            DownloadManager.AbortDownload(download.Model);
+            DownloadManager.AbortDownload(download?.Model);
+        }
+
+        private void QueueManagerCommand_OnClick(object sender, RoutedEventArgs e)
+        {
+            var queueManagerWindow = new QueueManager(_queueManagerViewModel);
+            queueManagerWindow.ShowDialog();
         }
     }
 }

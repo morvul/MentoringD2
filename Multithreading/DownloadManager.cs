@@ -1,15 +1,18 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Threading;
 using Multithreading.Models;
+using Multithreading.ViewModels;
 
 namespace Multithreading
 {
-    public class DownloadManager
+    public static class DownloadManager
     {
-        public static Download CreateDownload(string sourcePath, string destinationPath)
+        public static Download CreateDownload(string sourcePath, string destinationPath,
+            Queue queue)
         {
-            var download = new Download
+            var download = new Download(queue)
             {
                 DestinationPath = destinationPath
             };
@@ -49,6 +52,20 @@ namespace Multithreading
             download.WebClient.CancelAsync();
             download.WebClient.DownloadFileCompleted += (sender, e) =>
                 File.Delete(download.DestinationalFile);
+        }
+
+        public static void AbortQueue(Queue model)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static void UpdateQueuesNumbers(ObservableCollection<QueueViewModel> queues)
+        {
+            var queueNumber = Queue.DefaultNumber;
+            foreach (var queue in queues)
+            {
+                queue.Number = queueNumber++;
+            }
         }
     }
 }

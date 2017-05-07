@@ -4,28 +4,26 @@ using Multithreading.Models;
 
 namespace Multithreading.ViewModels
 {
-    public class DownloadViewModel : ViewModelBase
+    public class DownloadViewModel : ViewModelBase<Download>
     {
-        private readonly Download _download;
-
         public DownloadViewModel()
+            : base(new Download())
         {
-            _download = new Download();
         }
 
         public DownloadViewModel(Download download)
+            : base(download)
         {
-            _download = download;
         }
 
         public string FileName
         {
-            get { return _download.FileName; }
+            get { return Model.FileName; }
             set
             {
-                if (_download.FileName != value)
+                if (Model.FileName != value)
                 {
-                    _download.FileName = value;
+                    Model.FileName = value;
                     OnPropertyChanged();
                 }
             }
@@ -33,12 +31,12 @@ namespace Multithreading.ViewModels
 
         public string ErrorMessage
         {
-            get { return _download.ErrorMessage; }
+            get { return Model.ErrorMessage; }
             set
             {
-                if (_download.ErrorMessage != value)
+                if (Model.ErrorMessage != value)
                 {
-                    _download.ErrorMessage = value;
+                    Model.ErrorMessage = value;
                     OnPropertyChanged();
                     OnPropertyChanged(nameof(ProgressMessage));
                     OnPropertyChanged(nameof(IsInProgress));
@@ -50,18 +48,18 @@ namespace Multithreading.ViewModels
 
         public bool IsInProgress => Progress < 100 && !HasError;
 
-        public WebClient WebClient => _download.WebClient;
+        public WebClient WebClient => Model.WebClient;
 
         public Uri FileUri { get; set; }
 
         public double Progress
         {
-            get { return _download.Progress; }
+            get { return Model.Progress; }
             set
             {
-                if (_download.Progress != value)
+                if (Model.Progress != value)
                 {
-                    _download.Progress = value;
+                    Model.Progress = value;
                     OnPropertyChanged();
                     OnPropertyChanged(nameof(ProgressMessage));
                     OnPropertyChanged(nameof(IsInProgress));
@@ -71,10 +69,10 @@ namespace Multithreading.ViewModels
 
         public string ProgressMessage =>
             ErrorMessage != null ? "Error" :
-            (_download.Progress < 100 ? $"{_download.Progress:0.##}%" : "Done");
+            (Model.Progress < 100 ? $"{Model.Progress:0.##}%" : "Done");
 
-        public string DestinationPath => _download.DestinationPath;
+        public string DestinationPath => Model.DestinationPath;
 
-        public Download Model => _download;
+        public int QueueNumber => Model.Queue.Number;
     }
 }

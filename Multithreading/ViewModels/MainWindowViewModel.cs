@@ -2,11 +2,12 @@
 
 namespace Multithreading.ViewModels
 {
-    public class MainWindowViewModel : ViewModelBase
+    public class MainWindowViewModel : ViewModelBase<object>
     {
         private ObservableCollection<DownloadViewModel> _downloads;
 
         public MainWindowViewModel()
+            : base(null)
         {
             Downloads = new ObservableCollection<DownloadViewModel>();
         }

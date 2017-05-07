@@ -7,7 +7,8 @@
         Title="New Download"
         WindowStartupLocation="CenterScreen"
         Width="350"
-        SizeToContent="Height">
+        SizeToContent="Height"
+        WindowStyle="ToolWindow">
     <Grid Margin="5">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"/>
@@ -15,6 +16,7 @@
             <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -34,8 +36,15 @@
         <Button Name="DestinationCommand" Grid.Column="2" Grid.Row="1" Content="..."
                 Margin="0,2"
                 Click="DestinationCommand_Click"/>
+
+        <Label Content="Queue" Grid.Column="0" Grid.Row="2"/>
+        <ComboBox Grid.Column="1" Grid.Row="2" Margin="0,2" ItemsSource="{Binding Queues}"
+                  SelectedItem="{Binding SelectedQueue}" DisplayMemberPath="Name"/>
+        <Button Name="NewQueueCommand" Grid.Column="2" Grid.Row="2" Content="+"
+                Margin="0,2"
+                Click="NewQueueCommand_Click"/>
         
-        <Button Name="CreateDownloadCommand" Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="2" 
+        <Button Name="CreateDownloadCommand" Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="3" 
                 HorizontalAlignment="Right" Content="Start" Margin="0 2" 
                 Click="CreateDownloadCommand_Click"/>
     </Grid>

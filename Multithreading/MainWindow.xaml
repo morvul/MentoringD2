@@ -11,6 +11,8 @@
         <ToolBar ToolBarTray.IsLocked="True">
             <Button Name="NewDownloadCommand" Content="+" ToolTip="New download" 
                     Click="NewDownloadCommand_OnClick"/>
+            <Button Name="QueueManagerCommand" Content="Queue Manager" 
+                    Click="QueueManagerCommand_OnClick"/>
         </ToolBar>
         <DataGrid Name="DownloadsList" Grid.Row="1"
                   ItemsSource="{Binding Downloads}" IsReadOnly="True" 
@@ -21,6 +23,7 @@
                 </Style>
             </DataGrid.Resources>
             <DataGrid.Columns>
+                <DataGridTextColumn Header="Queue" Binding="{Binding QueueNumber}" />
                 <DataGridTextColumn Header="Name" Binding="{Binding FileName}" />
                 <DataGridTemplateColumn Header="Progress">
                     <DataGridTemplateColumn.CellTemplate>
@@ -43,7 +46,7 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn>
+                <DataGridTemplateColumn CanUserResize="False">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="viewModels:DownloadViewModel">
                             <Button Click="CancelDownloadCommand_Click" 

@@ -56,6 +56,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Page Include="QueueManager.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -65,11 +69,23 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DownloadManager.cs" />
+    <Compile Include="Enums\QueueType.cs" />
     <Compile Include="KnownFolders.cs" />
+    <Compile Include="QueueManager.xaml.cs">
+      <DependentUpon>QueueManager.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Models\Download.cs" />
+    <Compile Include="Models\Queue.cs" />
+    <Compile Include="EditQueue.xaml.cs">
+      <DependentUpon>EditQueue.xaml</DependentUpon>
+    </Compile>
     <Compile Include="NewDownload.xaml.cs">
       <DependentUpon>NewDownload.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ViewModels\QueueManagerViewModel.cs" />
+    <Compile Include="ViewModels\EditQueueViewModel.cs" />
+    <Compile Include="ViewModels\QueueViewModel.cs" />
+    <Compile Include="ViewModels\NewDownloadViewModel.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
     <Compile Include="ViewModels\ViewModelBase.cs" />
     <Compile Include="ViewModels\DownloadViewModel.cs" />
@@ -77,6 +93,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="EditQueue.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="NewDownload.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

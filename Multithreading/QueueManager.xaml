@@ -1,0 +1,49 @@
+﻿<Window x:Class="Multithreading.QueueManager"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:viewModels="clr-namespace:Multithreading.ViewModels"
+        Title="Queue Manager" Height="350" Width="525"
+        WindowStartupLocation="CenterScreen">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <ToolBar ToolBarTray.IsLocked="True">
+            <Button Name="NewQueueCommand" Content="+" ToolTip="New queue" 
+                    Click="NewQueueCommand_OnClick"/>
+        </ToolBar>
+        <DataGrid Name="QueueList" Grid.Row="1"
+                  ItemsSource="{Binding Queues}" IsReadOnly="True" 
+                  AutoGenerateColumns="False">
+            <DataGrid.Resources>
+                <Style TargetType="DataGridRow">
+                    <EventSetter Event="MouseDoubleClick" Handler="Queue_DoubleClick"/>
+                </Style>
+            </DataGrid.Resources>
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Queue" Binding="{Binding Name}" />
+                <DataGridTemplateColumn CanUserResize="False">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate DataType="viewModels:QueueViewModel">
+                            <Button Click="CancelQueueCommand_Click" 
+                                    ToolTip="Abort" 
+                                    Height="16" Width="16">
+                                    <Image Source="Images/delete.png"/>
+                                <Button.Style>
+                                    <Style>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsInProgress}" Value="false">
+                                                <Setter Property="Control.Visibility" Value="Hidden" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</Window>

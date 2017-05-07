@@ -7,8 +7,14 @@ namespace Multithreading.Models
     public class Download
     {
         public Download()
+            : this(new Queue())
+        {
+        }
+
+        public Download(Queue queue)
         {
             WebClient = new WebClient();
+            Queue = queue;
         }
 
         public string ErrorMessage { get; set; }
@@ -26,5 +32,7 @@ namespace Multithreading.Models
         public string FileName { get; set; }
 
         public string DestinationalFile => Path.Combine(DestinationPath, FileName);
+
+        public Queue Queue { get; set; }
     }
 }
