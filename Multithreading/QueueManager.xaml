@@ -22,18 +22,39 @@
                 </Style>
             </DataGrid.Resources>
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Queue" Binding="{Binding Name}" />
+                <DataGridTextColumn Header="Name" Binding="{Binding Name}" />
+                <DataGridTextColumn Header="Type" Binding="{Binding Type}" />
+                <DataGridTemplateColumn CanUserResize="False">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate DataType="viewModels:QueueViewModel">
+                            <Button Click="StopQueueCommand_Click" 
+                                    ToolTip="Stop downloads" 
+                                    Height="16" Width="16">
+                                <Image Source="Images/stop.png"/>
+                                <Button.Style>
+                                    <Style>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsInProgress}" Value="false">
+                                                <Setter Property="Control.Visibility" Value="Hidden" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
                 <DataGridTemplateColumn CanUserResize="False">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="viewModels:QueueViewModel">
                             <Button Click="CancelQueueCommand_Click" 
                                     ToolTip="Abort" 
                                     Height="16" Width="16">
-                                    <Image Source="Images/delete.png"/>
+                                <Image Source="Images/delete.png"/>
                                 <Button.Style>
                                     <Style>
                                         <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsInProgress}" Value="false">
+                                            <DataTrigger Binding="{Binding IsDefault}" Value="true">
                                                 <Setter Property="Control.Visibility" Value="Hidden" />
                                             </DataTrigger>
                                         </Style.Triggers>

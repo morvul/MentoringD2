@@ -69,6 +69,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DownloadManager.cs" />
+    <Compile Include="Enums\DownloadState.cs" />
     <Compile Include="Enums\QueueType.cs" />
     <Compile Include="KnownFolders.cs" />
     <Compile Include="QueueManager.xaml.cs">
@@ -132,6 +133,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\delete.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\stop.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

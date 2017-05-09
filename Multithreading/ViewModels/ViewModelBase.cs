@@ -20,5 +20,15 @@ namespace Multithreading.ViewModels
         }
 
         public T Model { get; }
+
+
+        public virtual void Refresh()
+        {
+            var properties = GetType().GetProperties();
+            foreach (var propertyInfo in properties)
+            {
+                OnPropertyChanged(propertyInfo.Name);
+            }
+        }
     }
 }

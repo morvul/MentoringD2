@@ -1,14 +1,33 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Threading;
 using Multithreading.Models;
-using Multithreading.ViewModels;
 
 namespace Multithreading
 {
-    public static class DownloadManager
+    public class DownloadManager
     {
+        private static DownloadManager _instance;
+
+        public static DownloadManager GetInstance()
+        {
+            return _instance ?? (_instance = new DownloadManager());
+        }
+
+        private DownloadManager()
+        {
+            Downloads = new ObservableCollection<Download>();
+            Queues = new ObservableCollection<Queue>();
+            DefaultQueue = new Queue { Description = "Default" };
+            Queues.Add(DefaultQueue);
+        }
+
+        public Queue DefaultQueue { get; set; }
+
+        public ObservableCollection<Download> Downloads { set; get; }
+
+        public ObservableCollection<Queue> Queues { set; get; }
+
         public static Download CreateDownload(string sourcePath, string destinationPath,
             Queue queue)
         {
@@ -18,16 +37,6 @@ namespace Multithreading
             };
             SetFileName(sourcePath, download);
             return download;
-        }
-
-        public static void StartDownload(Download download, object listener = null)
-        {
-            var thread = new Thread(() =>
-            {
-                download.WebClient.DownloadFileAsync(download.SourcePath, download.DestinationalFile,
-                    listener);
-            });
-            thread.Start();
         }
 
         private static void SetFileName(string sourcePath, Download download)
@@ -47,25 +56,42 @@ namespace Multithreading
             download.FileName = fileName;
         }
 
-        public static void AbortDownload(Download download)
+        public void AddDownload(Download download)
         {
-            download.WebClient.CancelAsync();
-            download.WebClient.DownloadFileCompleted += (sender, e) =>
-                File.Delete(download.DestinationalFile);
+            Downloads.Add(download);
+            download.Queue.AddDownload(download);
         }
 
-        public static void AbortQueue(Queue model)
+        public void CreateQueue(Queue newQueue)
+        {
+            Queues.Add(newQueue);
+            UpdateQueuesNumbers();
+        }
+
+        private void UpdateQueuesNumbers()
+        {
+            var queueNumber = Queue.DefaultNumber;
+            foreach (var queue in Queues)
+            {
+                queue.Number = queueNumber++;
+            }
+        }
+
+        public void CancelDownload(Download download)
+        {
+            download.Cancel();
+            Downloads.Remove(download);
+            download.Queue.RemoveDownload(download);
+        }
+
+        public void AbortQueue(Queue model)
         {
             throw new NotImplementedException();
         }
 
-        public static void UpdateQueuesNumbers(ObservableCollection<QueueViewModel> queues)
+        public void StopQueue(Queue queue)
         {
-            var queueNumber = Queue.DefaultNumber;
-            foreach (var queue in queues)
-            {
-                queue.Number = queueNumber++;
-            }
+            queue.Stop();
         }
     }
 }

@@ -1,31 +1,31 @@
 ﻿using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.Linq;
 
 namespace Multithreading.ViewModels
 {
     public class QueueManagerViewModel : ViewModelBase<object>
     {
+        private readonly DownloadManager _downloadManager;
         private ObservableCollection<QueueViewModel> _queues;
-        private QueueViewModel _defaultQueue;
 
         public QueueManagerViewModel()
             : base(null)
         {
-            Queues = new ObservableCollection<QueueViewModel>();
-            DefaultQueue = new QueueViewModel("Default");
-            Queues.Add(DefaultQueue);
+            _downloadManager = DownloadManager.GetInstance();
+            _downloadManager.Queues.CollectionChanged += QueueListUpdated;
+            UpdateQueueList();
         }
-        
-        public QueueViewModel DefaultQueue
+
+        private void QueueListUpdated(object sender, NotifyCollectionChangedEventArgs e)
         {
-            get { return _defaultQueue; }
-            set
-            {
-                if (_defaultQueue != value)
-                {
-                    _defaultQueue = value;
-                    OnPropertyChanged();
-                }
-            }
+            UpdateQueueList();
+        }
+
+        private void UpdateQueueList()
+        {
+            var queues = _downloadManager.Queues.Select(x => new QueueViewModel(x));
+            Queues = new ObservableCollection<QueueViewModel>(queues);
         }
 
         public ObservableCollection<QueueViewModel> Queues

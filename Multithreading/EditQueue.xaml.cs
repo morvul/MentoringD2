@@ -28,6 +28,7 @@ namespace Multithreading
             if (model != null && _originlModel != null)
             {
                 _originlModel.Model.Type = model.Model.Type;
+                _originlModel.Refresh();
             }
             DialogResult = true;
             Close();

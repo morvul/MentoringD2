@@ -7,19 +7,22 @@ namespace Multithreading
 {
     public partial class QueueManager
     {
+        private readonly DownloadManager _downloadManager;
+
         public QueueManager(QueueManagerViewModel viewModel)
         {
             DataContext = viewModel;
+            _downloadManager = DownloadManager.GetInstance();
             InitializeComponent();
         }
 
         private void Queue_DoubleClick(object sender, MouseButtonEventArgs e)
         {
             var rowControl = e.OriginalSource as FrameworkElement;
-            var queue = rowControl?.DataContext as QueueViewModel;
-            if (queue != null)
+            var queueViewModel = rowControl?.DataContext as QueueViewModel;
+            if (queueViewModel != null)
             {
-                var queueEditWindow = new EditQueue(queue);
+                var queueEditWindow = new EditQueue(queueViewModel);
                 queueEditWindow.ShowDialog();
             }
         }
@@ -28,7 +31,7 @@ namespace Multithreading
         {
             var button = sender as Button;
             var download = button?.DataContext as QueueViewModel;
-            DownloadManager.AbortQueue(download?.Model);
+            _downloadManager.AbortQueue(download?.Model);
         }
 
         private void NewQueueCommand_OnClick(object sender, RoutedEventArgs e)
@@ -36,15 +39,15 @@ namespace Multithreading
             var newQueueWindow = new EditQueue();
             if (newQueueWindow.ShowDialog() == true)
             {
-                var newDownloadViewModel = DataContext as QueueManagerViewModel;
-                if (newDownloadViewModel != null)
-                {
-                    var newQueueViewModel = new QueueViewModel(newQueueWindow.CurrentQueue);
-                    newDownloadViewModel.Queues.Add(newQueueViewModel);
-                    DownloadManager.UpdateQueuesNumbers(newDownloadViewModel.Queues);
-                }
+                _downloadManager.CreateQueue(newQueueWindow.CurrentQueue);
             }
         }
 
+        private void StopQueueCommand_Click(object sender, RoutedEventArgs e)
+        {
+            var button = sender as Button;
+            var download = button?.DataContext as QueueViewModel;
+            _downloadManager.StopQueue(download?.Model);
+        }
     }
 }

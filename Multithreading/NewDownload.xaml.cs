@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Windows;
 using System.Windows.Forms;
 using Multithreading.ViewModels;
@@ -8,9 +9,12 @@ namespace Multithreading
 {
     public partial class NewDownload : Window
     {
+        private readonly DownloadManager _downloadManager;
+
         public NewDownload(NewDownloadViewModel downloadViewModel)
         {
             InitializeComponent();
+            _downloadManager = DownloadManager.GetInstance();
             DestinationPath.Text = KnownFolders.GetPath(KnownFolder.Downloads);
             var urlstr = Clipboard.GetText();
             if (Uri.IsWellFormedUriString(urlstr, UriKind.RelativeOrAbsolute))
@@ -59,9 +63,9 @@ namespace Multithreading
                 var newDownloadViewModel = DataContext as NewDownloadViewModel;
                 if (newDownloadViewModel != null)
                 {
-                    var newQueueViewModel = new QueueViewModel(newQueueWindow.CurrentQueue);
-                    newDownloadViewModel.Queues.Add(newQueueViewModel);
-                    DownloadManager.UpdateQueuesNumbers(newDownloadViewModel.Queues);
+                    _downloadManager.CreateQueue(newQueueWindow.CurrentQueue);
+                    var newQueueViewModel =
+                        newDownloadViewModel.Queues.FirstOrDefault(x => x.Name == newQueueWindow.CurrentQueue.Name);
                     newDownloadViewModel.SelectedQueue = newQueueViewModel;
                 }
             }
