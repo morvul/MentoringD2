@@ -66,16 +66,20 @@ namespace Multithreading.Models
 
                         break;
                     case QueueType.Sequence:
+                        var firstDownload = Downloads.FirstOrDefault(x => x.State == DownloadState.InProgress);
                         var downloadsInRun = Downloads
                             .Where(x => x.State == DownloadState.InProgress)
                             .ToList();
-                        if (downloadsInRun.Count != 1)
-                        {
                             foreach (var download in downloadsInRun)
                             {
-                                download.Suspend();
+                                if (download != firstDownload)
+                                {
+                                    download.Suspend();
+                                }
                             }
 
+                        if (firstDownload == null)
+                        {
                             TakeSequanceItem();
                         }
 
@@ -88,7 +92,7 @@ namespace Multithreading.Models
         {
             lock (Downloads)
             {
-                var currentDownload = Downloads.FirstOrDefault();
+                var currentDownload = Downloads.FirstOrDefault(x => x.State == DownloadState.InQueue);
                 if (currentDownload != null)
                 {
                     currentDownload.Start();

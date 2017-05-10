@@ -45,14 +45,11 @@ namespace Multithreading.ViewModels
                     Model.ErrorMessage = value;
                     OnPropertyChanged();
                     OnPropertyChanged(nameof(ProgressMessage));
-                    OnPropertyChanged(nameof(IsInProgress));
                 }
             }
         }
 
         public bool HasError => ErrorMessage != null;
-
-        public bool IsInProgress => Progress < 100 && !HasError;
 
         public double Progress
         {
@@ -66,8 +63,7 @@ namespace Multithreading.ViewModels
                     {
                         OnPropertyChanged();
                         OnPropertyChanged(nameof(ProgressMessage));
-                        OnPropertyChanged(nameof(IsInProgress));
-                        Console.WriteLine(Dispatcher.CurrentDispatcher.GetHashCode() + " " + ProgressMessage);
+                        OnPropertyChanged(nameof(State));
                     });
                 }
             }
@@ -112,7 +108,7 @@ namespace Multithreading.ViewModels
                 ErrorMessage = e.Error.InnerException?.Message ?? e.Error.Message;
                 Dispatcher.CurrentDispatcher.BeginInvoke((Action)delegate
                 {
-                    MessageBox.Show(e.Error.InnerException?.Message, "Download error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show(e.Error.InnerException?.Message ?? e.Error?.Message, "Download error", MessageBoxButton.OK, MessageBoxImage.Error);
                 });
             }
         }

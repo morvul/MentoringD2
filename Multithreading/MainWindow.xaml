@@ -59,9 +59,10 @@
                                     <Image Source="Images/delete.png"/>
                                 <Button.Style>
                                     <Style>
+                                        <Setter Property="Control.Visibility" Value="Hidden" />
                                         <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsInProgress}" Value="false">
-                                                <Setter Property="Control.Visibility" Value="Hidden" />
+                                            <DataTrigger Binding="{Binding State}" Value="{x:Static enums:DownloadState.InProgress}">
+                                                <Setter Property="Control.Visibility" Value="Visible" />
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
