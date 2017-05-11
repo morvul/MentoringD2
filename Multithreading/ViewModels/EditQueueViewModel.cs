@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using Multithreading.Enums;
 using Multithreading.Models;
 
@@ -11,7 +12,6 @@ namespace Multithreading.ViewModels
         public EditQueueViewModel()
             : this(new Queue())
         {
-            
         }
 
         public EditQueueViewModel(Queue queue)
@@ -50,6 +50,19 @@ namespace Multithreading.ViewModels
                 if (Model.Type != value)
                 {
                     Model.Type = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        public DateTime StartTime
+        {
+            get { return Model.StartTime; }
+            set
+            {
+                if (Model.StartTime != value)
+                {
+                    Model.StartTime = value;
                     OnPropertyChanged();
                 }
             }

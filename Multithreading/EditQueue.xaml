@@ -1,6 +1,7 @@
 ﻿<Window x:Class="Multithreading.EditQueue"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         Title="Edit Queue"
         WindowStartupLocation="CenterScreen"
         Width="350"
@@ -17,13 +18,16 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         
         <Label Content="Queue Type" Grid.Column="0" Grid.Row="2"/>
         <ComboBox Grid.Column="1" Grid.Row="2" Margin="0,2" ItemsSource="{Binding QueueTypes}"
                   SelectedItem="{Binding SelectedQueueType}"/>
-
-        <Button Name="CreateQueueCommand" Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="3" 
+        <Label Content="Start time" Grid.Column="0" Grid.Row="3"/>
+        <xctk:DateTimePicker Grid.Column="1" Grid.Row="3" Margin="0,2" Value="{Binding StartTime}"/>
+        
+        <Button Name="CreateQueueCommand" Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="4" 
                 HorizontalAlignment="Right" Content="Save"
                 Click="SaveQueueCommand_Click"/>
     </Grid>

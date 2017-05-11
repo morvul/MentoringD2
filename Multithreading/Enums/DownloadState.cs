@@ -7,6 +7,7 @@
         Completed,
         HasError,
         Restart,
-        Cancelled
+        Cancelled,
+        Scheduled
     }
 }

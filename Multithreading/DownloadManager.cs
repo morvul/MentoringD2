@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using Multithreading.Models;
 
 namespace Multithreading
@@ -84,9 +85,16 @@ namespace Multithreading
             download.Queue.RemoveDownload(download);
         }
 
-        public void AbortQueue(Queue model)
+        public void AbortQueue(Queue queue)
         {
-            throw new NotImplementedException();
+            foreach (var download in queue.Downloads.ToList())
+            {
+                download.Cancel();
+                download.Queue.RemoveDownload(download);
+                CancelDownload(download);
+            }
+
+            Queues.Remove(queue);
         }
 
         public void StopQueue(Queue queue)

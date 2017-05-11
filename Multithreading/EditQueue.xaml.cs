@@ -6,12 +6,12 @@ namespace Multithreading
 {
     public partial class EditQueue : Window
     {
-        private readonly QueueViewModel _originlModel;
+        private readonly QueueViewModel _originlViewModel;
 
         public EditQueue(QueueViewModel queueForUpdate = null)
         {
             InitializeComponent();
-            _originlModel = queueForUpdate;
+            _originlViewModel = queueForUpdate;
             DataContext = queueForUpdate != null
                 ? new EditQueueViewModel(queueForUpdate.Model.Clone())
                 : new EditQueueViewModel();
@@ -25,10 +25,11 @@ namespace Multithreading
         private void SaveQueueCommand_Click(object sender, RoutedEventArgs e)
         {
             var model = (DataContext as EditQueueViewModel);
-            if (model != null && _originlModel != null)
+            if (model != null && _originlViewModel != null)
             {
-                _originlModel.Model.Type = model.Model.Type;
-                _originlModel.Refresh();
+                _originlViewModel.Model.Type = model.Model.Type;
+                _originlViewModel.Model.StartTime = model.Model.StartTime;
+                _originlViewModel.Refresh();
             }
             DialogResult = true;
             Close();

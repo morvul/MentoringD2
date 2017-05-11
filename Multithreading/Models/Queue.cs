@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Configuration;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows;
 using Multithreading.Enums;
 
 namespace Multithreading.Models
@@ -9,12 +13,44 @@ namespace Multithreading.Models
     public class Queue
     {
         public const int DefaultNumber = 1;
+        private readonly int _scheduleCheckDelay;
+        private Task _queueScheduler;
 
         public Queue()
         {
             Number = DefaultNumber;
             Downloads = new List<Download>();
             Type = QueueType.Sequence;
+            _queueScheduler = new Task(QueueScheduler);
+            var delayStr = ConfigurationManager.AppSettings["ScheduleCheckDelay"];
+            _scheduleCheckDelay = int.Parse(delayStr);
+            StartTime = DateTime.Now;
+        }
+
+        private void QueueScheduler()
+        {
+            lock (Downloads)
+            {
+                Downloads
+                    .Where(x => x.State == DownloadState.InQueue)
+                    .ToList()
+                    .ForEach(x => x.State = DownloadState.Scheduled);
+            }
+
+            while (StartTime > DateTime.Now)
+            {
+                Thread.Sleep(_scheduleCheckDelay);
+            }
+
+            lock (Downloads)
+            {
+                Downloads
+                    .Where(x => x.State == DownloadState.Scheduled)
+                    .ToList()
+                    .ForEach(x => x.State = DownloadState.InQueue);
+            }
+
+            Application.Current.Dispatcher.BeginInvoke((Action)UpdateQueueState);
         }
 
         public int Number { get; set; }
@@ -29,6 +65,8 @@ namespace Multithreading.Models
 
         public bool IsInProgress => Downloads.Any(x => x.State == DownloadState.InProgress);
 
+        public DateTime StartTime { get; set; }
+
         public event Action IsInProgressChanged;
         
         public Queue Clone()
@@ -38,7 +76,8 @@ namespace Multithreading.Models
                 Type = Type,
                 Number = Number,
                 Downloads = Downloads,
-                Description = Description
+                Description = Description,
+                StartTime = StartTime
             };
         }
 
@@ -47,11 +86,19 @@ namespace Multithreading.Models
             lock (Downloads)
             {
                 Downloads.Add(download);
-                UpdateQueueState();
+                Refresh();
             }
         }
 
-        public void UpdateQueueState()
+        public void Refresh()
+        {
+            if (_queueScheduler.Status != TaskStatus.Running)
+            {
+                _queueScheduler = Task.Run(()=>QueueScheduler());
+            }
+        }
+
+        private void UpdateQueueState()
         {
             lock (Downloads)
             {

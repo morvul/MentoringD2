@@ -22,7 +22,7 @@ namespace Multithreading.Models
                 DownloadProgressChanged?.Invoke(sender, args);
             _webClient.DownloadFileCompleted += DownloadCompleted;
             Queue = queue;
-            State = DownloadState.InQueue;
+            State = DownloadState.Scheduled;
         }
 
         public string ErrorMessage { get; set; }

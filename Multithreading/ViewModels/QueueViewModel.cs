@@ -1,4 +1,5 @@
-﻿using Multithreading.Enums;
+﻿using System;
+using Multithreading.Enums;
 using Multithreading.Models;
 
 namespace Multithreading.ViewModels
@@ -52,10 +53,12 @@ namespace Multithreading.ViewModels
 
         public bool IsDefault => Model.Number == Queue.DefaultNumber;
 
+        public DateTime StartTime => Model.StartTime;
+
         public override void Refresh()
         {
             base.Refresh();
-            Model.UpdateQueueState();
+            Model.Refresh();
         }
 
         private void IsInProgressChanged()
