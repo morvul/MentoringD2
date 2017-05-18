@@ -133,7 +133,7 @@ namespace Services
                             HostLogger.Get<DocumentControlSystemService>().Info($"Adding of file: {imageFile}");
                             var page = pdfFile.AddPage();
                             var gfx = XGraphics.FromPdfPage(page);
-                            using (var image = XImage.FromFile(imageFile.Name))
+                            using (var image = XImage.FromFile(imageFile.ToString()))
                             {
                                 var imageWidth = (double)(image.PixelWidth < page.Width ? image.PixelWidth : page.Width);
                                 var imageHeight = (imageWidth / image.PixelWidth) * image.PixelHeight;
