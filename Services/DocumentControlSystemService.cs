@@ -5,8 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
-using MigraDoc.DocumentObjectModel;
-using MigraDoc.Rendering;
+using PdfSharp.Drawing;
+using PdfSharp.Pdf;
 using Topshelf;
 using Topshelf.Logging;
 
@@ -21,6 +21,7 @@ namespace Services
         private string _trashDirectory;
         private int _sequanceTime;
         private string _processedDirectory;
+        private CancellationTokenSource _cancelationSource;
 
         public DocumentControlSystemService()
         {
@@ -31,6 +32,7 @@ namespace Services
 
         public bool Start(HostControl hostControl)
         {
+            _cancelationSource = new CancellationTokenSource();
             return Initialize();
         }
 
@@ -83,6 +85,7 @@ namespace Services
         public bool Stop(HostControl hostControl)
         {
             DisposeWatchers();
+            _cancelationSource.Cancel();
             return true;
         }
 
@@ -114,6 +117,7 @@ namespace Services
             {
                 lock (_fileSeqence)
                 {
+                    var cancelToken = _cancelationSource.Token;
                     if (_fileSeqence.Count == 0)
                     {
                         return;
@@ -121,40 +125,64 @@ namespace Services
 
                     HostLogger.Get<DocumentControlSystemService>().Info("Pdf generation started...");
 
-                    var pdfFile = new Document();
-                    var section = pdfFile.AddSection();
-                    foreach (var file in _fileSeqence.ToList())
+                    using (var pdfFile = new PdfDocument())
                     {
-                        var fileName = Path.GetFileName(file);
+                        var imageFiles = GetFiles(_fileSeqence);
+                        foreach (var imageFile in imageFiles)
+                        {
+                            HostLogger.Get<DocumentControlSystemService>().Info($"Adding of file: {imageFile}");
+                            var page = pdfFile.AddPage();
+                            var gfx = XGraphics.FromPdfPage(page);
+                            using (var image = XImage.FromFile(imageFile.Name))
+                            {
+                                var imageWidth = (double)(image.PixelWidth < page.Width ? image.PixelWidth : page.Width);
+                                var imageHeight = (imageWidth / image.PixelWidth) * image.PixelHeight;
+                                gfx.DrawImage(image, 0, 0, imageWidth, imageHeight);
+                            }
+
+                            if (cancelToken.IsCancellationRequested)
+                            {
+                                return;
+                            }
+                        }
+
+                        HostLogger.Get<DocumentControlSystemService>().Info("Pdf generation finished...");
+                        var resultPdfFile = Path.Combine(_processedDirectory,
+                            $"{DateTime.Now.ToString("yyyy-MMMM-dd(HH-mm-ss)")}.pdf");
+                        HostLogger.Get<DocumentControlSystemService>().Info($"Pdf file saving: \n {resultPdfFile}");
+                        pdfFile.Save(resultPdfFile);
+                    }
+
+                    foreach (var imageFile in _fileSeqence.ToList())
+                    {
+                        var fileName = Path.GetFileName(imageFile);
                         if (fileName != null)
                         {
-                            HostLogger.Get<DocumentControlSystemService>().Info($"Adding of file: {file}");
-                            var image = section.AddImage(file);
-                            image.Height = pdfFile.DefaultPageSetup.PageHeight;
-                            image.Width = pdfFile.DefaultPageSetup.PageWidth;
-                            image.ScaleHeight = 0.75;
-                            image.ScaleWidth = 0.75;
-
-                            section.AddPageBreak();
                             var pocessedFilePath = Path.Combine(_processedDirectory, fileName);
-                            MoveWithRenaming(file, pocessedFilePath);
-                            _fileSeqence.Remove(file);
+                            MoveWithRenaming(imageFile, pocessedFilePath);
+                            _fileSeqence.Remove(imageFile);
                         }
                     }
 
-                    var render = new PdfDocumentRenderer {Document = pdfFile};
-                    render.RenderDocument();
-                    HostLogger.Get<DocumentControlSystemService>().Info("Pdf generation finished...");
-                    var resultPdfFile = Path.Combine(_processedDirectory, $"{DateTime.Now.ToString("yyyy-MMMM-dd(HH-mm-ss)")}.pdf");
-                    HostLogger.Get<DocumentControlSystemService>().Info($"Pdf file saving: \n {resultPdfFile}");
-
-                    render.Save(resultPdfFile);
                 }
             }
             catch (Exception e)
             {
                 HostLogger.Get<DocumentControlSystemService>().Error(e.Message);
             }
+        }
+
+        private List<FileInfo> GetFiles(List<string> fileSeqence)
+        {
+            var files = new List<FileInfo>();
+            foreach (var filePath in fileSeqence)
+            {
+                var file = new FileInfo(filePath);
+                files.Add(file);
+            }
+
+            files = files.OrderBy(x => x.CreationTime).ToList();
+            return files;
         }
 
         private void DisposeWatchers()
@@ -238,7 +266,7 @@ namespace Services
                 resultFilePath = Path.Combine(dir, file + " - Copy" + ext);
             }
 
-            HostLogger.Get<DocumentControlSystemService>().Info($"Copying of file started:\n {sourceFilePath}\n ->\n {resultFilePath}");
+            HostLogger.Get<DocumentControlSystemService>().Info($"Moving of file started:\n {sourceFilePath}\n ->\n {resultFilePath}");
 
             File.Move(sourceFilePath, resultFilePath);
         }
