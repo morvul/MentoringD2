@@ -28,11 +28,11 @@ namespace Services
             _fileWatchers = new List<FileSystemWatcher>();
             _fileSeqence = new List<string>();
             _sequanceCountdown = new Timer(SequanceProcess);
+            _cancelationSource = new CancellationTokenSource();
         }
 
         public bool Start(HostControl hostControl)
         {
-            _cancelationSource = new CancellationTokenSource();
             return Initialize();
         }
 
@@ -107,8 +107,6 @@ namespace Services
                     fileWatcher.EnableRaisingEvents = true;
                     _fileWatchers.Add(fileWatcher);
                 }
-
-                _fileWatchers.Clear();
             }
         }
         private void SequanceProcess(object state)
@@ -127,23 +125,19 @@ namespace Services
 
                     using (var pdfFile = new PdfDocument())
                     {
-                        var imageFiles = GetFiles(_fileSeqence);
-                        foreach (var imageFile in imageFiles)
+                        foreach (var imageFile in _fileSeqence)
                         {
                             HostLogger.Get<DocumentControlSystemService>().Info($"Adding of file: {imageFile}");
                             var page = pdfFile.AddPage();
                             var gfx = XGraphics.FromPdfPage(page);
-                            using (var image = XImage.FromFile(imageFile.ToString()))
+                            using (var image = XImage.FromFile(imageFile))
                             {
                                 var imageWidth = (double)(image.PixelWidth < page.Width ? image.PixelWidth : page.Width);
                                 var imageHeight = (imageWidth / image.PixelWidth) * image.PixelHeight;
                                 gfx.DrawImage(image, 0, 0, imageWidth, imageHeight);
                             }
 
-                            if (cancelToken.IsCancellationRequested)
-                            {
-                                return;
-                            }
+                            cancelToken.ThrowIfCancellationRequested();
                         }
 
                         HostLogger.Get<DocumentControlSystemService>().Info("Pdf generation finished...");
@@ -199,6 +193,8 @@ namespace Services
                         fileWatcher.Changed -= NewFile;
                         fileWatcher.Dispose();
                     }
+
+                    _fileWatchers.Clear();
                 }
             }
             catch (Exception e)
@@ -221,13 +217,12 @@ namespace Services
 
         private void ProcessFolder(string targetDirectory)
         {
-            foreach (var sourceFilePath in Directory.GetFiles(targetDirectory))
+            var filenames = Directory.GetFiles(targetDirectory).ToList();
+            var orderedImageFiles = GetFiles(filenames);
+            foreach (var sourceFile in orderedImageFiles)
             {
-                var fileName = Path.GetFileName(sourceFilePath);
-                if (fileName != null)
-                {
-                    ProcessFile(sourceFilePath, fileName);
-                }
+                var fileName = Path.GetFileName(sourceFile.ToString());
+                ProcessFile(sourceFile.ToString(), fileName);
             }
         }
 
@@ -236,7 +231,7 @@ namespace Services
             var resultFilePath = Path.Combine(_outputDirectory, fileName);
             if (sourceFilePath != resultFilePath)
             {
-                MoveWithRenaming(sourceFilePath, resultFilePath);
+                resultFilePath = MoveWithRenaming(sourceFilePath, resultFilePath);
             }
 
             if (IsFileValid(resultFilePath))
@@ -252,23 +247,25 @@ namespace Services
                 MoveWithRenaming(resultFilePath, trashFilePath);
             }
 
-            _sequanceCountdown.Change(0, _sequanceTime);
+            _sequanceCountdown.Change(_sequanceTime, _sequanceTime);
             HostLogger.Get<DocumentControlSystemService>().Info("Success");
         }
 
-        private void MoveWithRenaming(string sourceFilePath, string resultFilePath)
+        private string MoveWithRenaming(string sourceFilePath, string resultFilePath)
         {
-            if (File.Exists(resultFilePath))
+            var dir = Path.GetDirectoryName(resultFilePath);
+            var fileName = Path.GetFileNameWithoutExtension(resultFilePath);
+            var ext = Path.GetExtension(resultFilePath);
+            while (File.Exists(resultFilePath))
             {
-                var dir = Path.GetDirectoryName(resultFilePath);
-                var file = Path.GetFileNameWithoutExtension(resultFilePath);
-                var ext = Path.GetExtension(resultFilePath);
-                resultFilePath = Path.Combine(dir, file + " - Copy" + ext);
+                fileName = fileName + " - Copy";
+                resultFilePath = Path.Combine(dir, fileName + ext);
             }
 
             HostLogger.Get<DocumentControlSystemService>().Info($"Moving of file started:\n {sourceFilePath}\n ->\n {resultFilePath}");
 
             File.Move(sourceFilePath, resultFilePath);
+            return resultFilePath;
         }
 
         private bool IsFileValid(string resultFilePath)

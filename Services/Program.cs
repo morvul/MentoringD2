@@ -1,6 +1,4 @@
-﻿using NLog;
-using NLog.Config;
-using Topshelf;
+﻿using Topshelf;
 
 namespace Services
 {
@@ -15,6 +13,11 @@ namespace Services
                 x.SetDisplayName("Document Control System");
                 x.UseNLog();
                 x.StartAutomaticallyDelayed();
+                x.EnableServiceRecovery(r =>
+                {
+                    r.RestartService(1);
+                    r.SetResetPeriod(1);
+                });
             });
         }
     }
