@@ -12,7 +12,7 @@ namespace MessageQueue.FileMonitorService
                 x.SetServiceName("DCS File Monitor");
                 x.SetDisplayName("Document Control System - File Monitor");
                 x.UseNLog();
-                x.StartAutomaticallyDelayed();
+                x.StartManually();
             });
         }
     }

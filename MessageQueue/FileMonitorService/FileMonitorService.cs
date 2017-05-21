@@ -16,10 +16,12 @@ namespace MessageQueue.FileMonitorService
         private string _trashDirectory;
         private string _processedDirectory;
         private string _fileQueueName;
+        private Guid _instanceId;
 
         public DocumentControlSystemService()
         {
             _fileWatchers = new List<FileSystemWatcher>();
+            _instanceId = Guid.NewGuid();
         }
 
         public bool Start(HostControl hostControl)
@@ -109,14 +111,10 @@ namespace MessageQueue.FileMonitorService
         }
         private List<FileInfo> GetFiles(List<string> fileSeqence)
         {
-            var files = new List<FileInfo>();
-            foreach (var filePath in fileSeqence)
-            {
-                var file = new FileInfo(filePath);
-                files.Add(file);
-            }
-
-            files = files.OrderBy(x => x.CreationTime).ToList();
+            var files = fileSeqence
+                .Select(filePath => new FileInfo(filePath))
+                .OrderBy(x => x.CreationTime)
+                .ToList();
             return files;
         }
 
@@ -169,34 +167,16 @@ namespace MessageQueue.FileMonitorService
 
         private void ProcessFile(string sourceFilePath, string fileName)
         {
-            var resultFilePath = Path.Combine(_processedDirectory, fileName);
-            if (IsFileValid(resultFilePath))
+            if (IsFileValid(sourceFilePath))
             {
-                resultFilePath = MoveWithRenaming(sourceFilePath, resultFilePath);
-                TranserFile(resultFilePath);
+                TranserFile(sourceFilePath);
+                File.Delete(sourceFilePath);
             }
             else
             {
                 var trashFilePath = Path.Combine(_trashDirectory, fileName);
-                MoveWithRenaming(resultFilePath, trashFilePath);
+                FileHelper.MoveWithRenaming(sourceFilePath, trashFilePath);
             }
-        }
-
-        private string MoveWithRenaming(string sourceFilePath, string resultFilePath)
-        {
-            var dir = Path.GetDirectoryName(resultFilePath);
-            var fileName = Path.GetFileNameWithoutExtension(resultFilePath);
-            var ext = Path.GetExtension(resultFilePath);
-            while (File.Exists(resultFilePath))
-            {
-                fileName = fileName + " - Copy";
-                resultFilePath = Path.Combine(dir, fileName + ext);
-            }
-
-            HostLogger.Get<DocumentControlSystemService>().Info($"Moving of file started:\n {sourceFilePath}\n ->\n {resultFilePath}");
-
-            File.Move(sourceFilePath, resultFilePath);
-            return resultFilePath;
         }
 
         private bool IsFileValid(string resultFilePath)
@@ -204,20 +184,20 @@ namespace MessageQueue.FileMonitorService
             return Regex.IsMatch(resultFilePath, @".*[.](jpg|jpeg|png)$");
         }
 
-        private void TranserFile(string resultFilePath)
+        private void TranserFile(string filePath)
         {
-            HostLogger.Get<DocumentControlSystemService>().Info($"File Sending started:\n{resultFilePath}");
+            HostLogger.Get<DocumentControlSystemService>().Info($"File Sending started:\n{filePath}");
+            if (!System.Messaging.MessageQueue.Exists(_fileQueueName))
+            {
+                System.Messaging.MessageQueue.Create(_fileQueueName);
+            }
 
             try
             {
-                if (!System.Messaging.MessageQueue.Exists(_fileQueueName))
+                var fileName = Path.GetFileName(filePath);
+                using (FileStream file = new FileStream(filePath, FileMode.Open))
                 {
-                    System.Messaging.MessageQueue.Create(_fileQueueName);
-                }
-
-                using (FileStream file = new FileStream(resultFilePath, FileMode.Open))
-                {
-                    var buffer = new byte[1024*1024*4];
+                    var buffer = new byte[1024*1024];
                     int bytesRead;
                     while ((bytesRead = file.Read(buffer, 0, buffer.Length)) > 0)
                     {
@@ -226,18 +206,18 @@ namespace MessageQueue.FileMonitorService
                             FilePosition = file.Position,
                             FileSize = file.Length,
                             Data = buffer,
-                            Size = bytesRead
+                            Size = bytesRead,
+                            FileName = fileName,
+                            AgentId = _instanceId
                         };
 
-                        using (var serverQueue = new System.Messaging.MessageQueue(_fileQueueName, QueueAccessMode.Send))
+                        using (var fileQueue = new System.Messaging.MessageQueue(_fileQueueName, QueueAccessMode.Send))
                         {
                             var message = new Message(fileChunk);
-                            serverQueue.Send(message);
+                            fileQueue.Send(message);
                         }
                     }
                 }
-
-
 
                 HostLogger.Get<DocumentControlSystemService>().Info("File Sending done");
             }

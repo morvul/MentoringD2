@@ -12,7 +12,7 @@ namespace MessageQueue.ProcessingService
                 x.SetServiceName("DCS Processing service");
                 x.SetDisplayName("Document Control System - Processing service");
                 x.UseNLog();
-                x.StartAutomaticallyDelayed();
+                x.StartManually();
             });
         }
     }

@@ -24,6 +24,7 @@ namespace MessageQueue.ProcessingService
         private readonly CancellationTokenSource _cancelationSource;
         private string _fileMonitorQueueName;
         private string _fileQueueName;
+        private string _trashDirectory;
 
         public ProcessingService()
         {
@@ -45,6 +46,7 @@ namespace MessageQueue.ProcessingService
                 _fileMonitorQueueName = ConfigurationManager.AppSettings["FileMonitorQueueName"];
                 _sequanceTime = int.Parse(ConfigurationManager.AppSettings["SequanceTime"]);
                 _outputDirectory = ConfigurationManager.AppSettings["OutputDirectory"];
+                _trashDirectory = ConfigurationManager.AppSettings["TrashDirectory"];
                 if (!Directory.Exists(_outputDirectory))
                 {
                     Directory.CreateDirectory(_outputDirectory);
@@ -68,46 +70,49 @@ namespace MessageQueue.ProcessingService
         }
 
 
-        public void ProcessFiles(CancellationToken token)
+        private void ProcessFiles(CancellationToken token)
         {
-            if (!System.Messaging.MessageQueue.Exists(_fileQueueName))
+            try
             {
-                System.Messaging.MessageQueue.Create(_fileQueueName);
-            }
-
-            using (var serverQueue = new System.Messaging.MessageQueue(_fileQueueName))
-            {
-                serverQueue.Formatter = new XmlMessageFormatter(new[] { typeof(FileChunk) });
-                var chunks = new List<FileChunk>();
-
-                do
+                using (var serverQueue = new System.Messaging.MessageQueue(_fileQueueName, QueueAccessMode.Receive))
                 {
-                    var fileParts = serverQueue.GetAllMessages();
-                    foreach (var filePart in fileParts)
+                    serverQueue.Formatter = new XmlMessageFormatter(new[] {typeof (FileChunk)});
+                    var chunks = new Dictionary<Guid, List<FileChunk>>();
+
+                    do
                     {
-                        var chunk = filePart.Body as FileChunk;
+                        var message = serverQueue.Receive();
+                        var chunk = message?.Body as FileChunk;
                         if (chunk != null)
                         {
-                            chunks.Add(chunk);
-                            if (chunk.FilePosition == chunk.Size)
+                            if (!chunks.ContainsKey(chunk.AgentId))
                             {
-                                SaveFile(chunks);
+                                chunks.Add(chunk.AgentId, new List<FileChunk>());
+                            }
+
+                            chunks[chunk.AgentId].Add(chunk);
+                            if (chunk.FilePosition == chunk.FileSize)
+                            {
+                                var fileName = SaveFile(chunks[chunk.AgentId]);
+                                ProcessFile(fileName);
+                                chunks[chunk.AgentId].Clear();
                             }
                         }
-                    }
-                    serverQueue.Purge();
-                    Thread.Sleep(1000);
+                    } while (!token.IsCancellationRequested);
                 }
-                while (!token.IsCancellationRequested);
+            }
+            catch (Exception e)
+            {
+                HostLogger.Get<ProcessingService>().Error(e.Message);
             }
         }
 
-        private void SaveFile(List<FileChunk> chunks)
+        private string SaveFile(List<FileChunk> chunks)
         {
             var fileName = chunks.FirstOrDefault()?.FileName;
             if (fileName != null)
             {
-                var resultFilePath = Path.Combine(_outputDirectory, fileName);
+                var resultFilePath = FileHelper.GetUniqueName(_outputDirectory, fileName);
                 using (var destination = File.Create(resultFilePath))
                 {
                     foreach (var chunk in chunks)
@@ -115,7 +120,11 @@ namespace MessageQueue.ProcessingService
                         destination.Write(chunk.Data, 0, chunk.Size);
                     }
                 }
+
+                return resultFilePath;
             }
+
+            return null;
         }
 
         private void SequanceProcess(object state)
@@ -155,6 +164,11 @@ namespace MessageQueue.ProcessingService
                         HostLogger.Get<ProcessingService>().Info($"Pdf file saving: \n {resultPdfFile}");
                         pdfFile.Save(resultPdfFile);
                     }
+
+                    foreach (var file in _fileSeqence)
+                    {
+                        File.Delete(file);
+                    }
                 }
             }
             catch (Exception e)
@@ -163,24 +177,24 @@ namespace MessageQueue.ProcessingService
             }
         }
 
-        private void ProcessFile(string sourceFilePath, string fileName)
+        private void ProcessFile(string filePath)
         {
-            var resultFilePath = Path.Combine(_outputDirectory, fileName);
-
-            if (IsFileValid(resultFilePath))
+            if (IsFileValid(filePath))
             {
                 lock (_fileSeqence)
                 {
-                    _fileSeqence.Add(resultFilePath);
+                    _fileSeqence.Add(filePath);
                 }
             }
             else
             {
-                HostLogger.Get<ProcessingService>().Error($"Recieved invalid file {sourceFilePath}");
+                var fileName = Path.GetFileName(filePath);
+                var trashFilePath = Path.Combine(_trashDirectory, fileName);
+                FileHelper.MoveWithRenaming(filePath, trashFilePath);
+                HostLogger.Get<ProcessingService>().Error($"Recieved invalid file {filePath}");
             }
 
             _sequanceCountdown.Change(_sequanceTime, _sequanceTime);
-            HostLogger.Get<ProcessingService>().Info("Success");
         }
 
         private bool IsFileValid(string resultFilePath)
