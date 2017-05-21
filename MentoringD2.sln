@@ -13,6 +13,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "4.Multithreading", "Multith
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "5.Services", "Services\5.Services.csproj", "{4194AF68-9B20-4969-BA2E-80D7D306C093}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileMonitorService", "MessageQueue\FileMonitorService\FileMonitorService.csproj", "{97D33A72-EB09-45FB-9434-3DE226705396}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "6.MessageQueue", "6.MessageQueue", "{17D53E43-C25E-414B-9BC9-561DE125CA3B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessingService", "MessageQueue\ProcessingService\ProcessingService.csproj", "{DD45AE62-4861-491A-B11A-44CEABCC2B74}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,8 +45,20 @@ Global
 		{4194AF68-9B20-4969-BA2E-80D7D306C093}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4194AF68-9B20-4969-BA2E-80D7D306C093}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4194AF68-9B20-4969-BA2E-80D7D306C093}.Release|Any CPU.Build.0 = Release|Any CPU
+		{97D33A72-EB09-45FB-9434-3DE226705396}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{97D33A72-EB09-45FB-9434-3DE226705396}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{97D33A72-EB09-45FB-9434-3DE226705396}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{97D33A72-EB09-45FB-9434-3DE226705396}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DD45AE62-4861-491A-B11A-44CEABCC2B74}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD45AE62-4861-491A-B11A-44CEABCC2B74}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD45AE62-4861-491A-B11A-44CEABCC2B74}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD45AE62-4861-491A-B11A-44CEABCC2B74}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{97D33A72-EB09-45FB-9434-3DE226705396} = {17D53E43-C25E-414B-9BC9-561DE125CA3B}
+		{DD45AE62-4861-491A-B11A-44CEABCC2B74} = {17D53E43-C25E-414B-9BC9-561DE125CA3B}
 	EndGlobalSection
 EndGlobal
