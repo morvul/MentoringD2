@@ -17,8 +17,7 @@ namespace MessageQueue.ProcessingService
 {
     internal class ProcessingService : ServiceControl
     {
-        private readonly List<string> _fileSeqence;
-        private readonly Timer _sequanceCountdown;
+        private readonly Dictionary<Guid, Sequance> _sequances;
         private string _outputDirectory;
         private int _sequanceTime;
         private readonly CancellationTokenSource _cancelationSource;
@@ -28,8 +27,7 @@ namespace MessageQueue.ProcessingService
 
         public ProcessingService()
         {
-            _fileSeqence = new List<string>();
-            _sequanceCountdown = new Timer(SequanceProcess);
+            _sequances = new Dictionary<Guid, Sequance>();
             _cancelationSource = new CancellationTokenSource();
         }
 
@@ -94,7 +92,7 @@ namespace MessageQueue.ProcessingService
                             if (chunk.FilePosition == chunk.FileSize)
                             {
                                 var fileName = SaveFile(chunks[chunk.AgentId]);
-                                ProcessFile(fileName);
+                                ProcessFile(fileName, chunk.AgentId);
                                 chunks[chunk.AgentId].Clear();
                             }
                         }
@@ -131,7 +129,7 @@ namespace MessageQueue.ProcessingService
         {
             try
             {
-                lock (_fileSeqence)
+                lock (_sequances)
                 {
                     var cancelToken = _cancelationSource.Token;
                     if (_fileSeqence.Count == 0)
@@ -177,7 +175,7 @@ namespace MessageQueue.ProcessingService
             }
         }
 
-        private void ProcessFile(string filePath)
+        private void ProcessFile(string filePath, Guid agentId)
         {
             if (IsFileValid(filePath))
             {
@@ -189,12 +187,13 @@ namespace MessageQueue.ProcessingService
             else
             {
                 var fileName = Path.GetFileName(filePath);
-                var trashFilePath = Path.Combine(_trashDirectory, fileName);
+                var agentName = agentId.ToString().Substring(0, 4);
+                var trashFilePath = Path.Combine(_trashDirectory, agentName, fileName);
                 FileHelper.MoveWithRenaming(filePath, trashFilePath);
                 HostLogger.Get<ProcessingService>().Error($"Recieved invalid file {filePath}");
             }
 
-            _sequanceCountdown.Change(_sequanceTime, _sequanceTime);
+            _sequances[agentId].Change(_sequanceTime, _sequanceTime);
         }
 
         private bool IsFileValid(string resultFilePath)
