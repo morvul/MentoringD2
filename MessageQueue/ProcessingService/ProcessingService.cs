@@ -23,6 +23,7 @@ namespace MessageQueue.ProcessingService
         private readonly CancellationTokenSource _cancelationSource;
         private string _fileQueueName;
         private string _trashDirectory;
+        private string _queuesQueueName;
 
         public ProcessingService()
         {
@@ -43,11 +44,13 @@ namespace MessageQueue.ProcessingService
                 _sequanceTime = int.Parse(ConfigurationManager.AppSettings["SequanceTime"]);
                 _outputDirectory = ConfigurationManager.AppSettings["OutputDirectory"];
                 _trashDirectory = ConfigurationManager.AppSettings["TrashDirectory"];
+                _queuesQueueName = ConfigurationManager.AppSettings["QueuesQueueName"];
                 if (!Directory.Exists(_outputDirectory))
                 {
                     Directory.CreateDirectory(_outputDirectory);
                 }
 
+                RestorePreviousSession();
                 Task.Run(() => ProcessFiles(_cancelationSource.Token));
             }
             catch (Exception e)
@@ -57,6 +60,43 @@ namespace MessageQueue.ProcessingService
             }
 
             return true;
+        }
+
+        private void RestorePreviousSession()
+        {
+            if (!System.Messaging.MessageQueue.Exists(_queuesQueueName))
+            {
+                System.Messaging.MessageQueue.Create(_queuesQueueName);
+            }
+
+            using (var queuesQueue = new System.Messaging.MessageQueue(_queuesQueueName, QueueAccessMode.Receive))
+            {
+                queuesQueue.Formatter = new XmlMessageFormatter(new[] { typeof(AgentQueue) });
+                var agentQueues = queuesQueue.GetAllMessages().Select(x => x.Body as AgentQueue);
+                foreach (var agentQqueue in agentQueues)
+                {
+                    if (agentQqueue == null)
+                    {
+                        continue;
+                    }
+
+                    lock (_sequances)
+                    {
+                        if (!_sequances.ContainsKey(agentQqueue.AgentId))
+                        {
+                            var newSequance = new Sequance(agentQqueue.AgentId, _sequanceTime, _cancelationSource.Token);
+                            newSequance.OnSequanceCompleted += SequanceProcess;
+                            _sequances.Add(agentQqueue.AgentId, newSequance);
+                            if (!System.Messaging.MessageQueue.Exists(agentQqueue.QueueName))
+                            {
+                                System.Messaging.MessageQueue.Create(agentQqueue.QueueName);
+                            }
+                        }
+
+                        _sequances[agentQqueue.AgentId].UpdateSequanceState();
+                    }
+                }
+            }
         }
 
         public bool Stop(HostControl hostControl)
@@ -70,14 +110,14 @@ namespace MessageQueue.ProcessingService
         {
             try
             {
-                using (var serverQueue = new System.Messaging.MessageQueue(_fileQueueName, QueueAccessMode.Receive))
+                using (var fileQueue = new System.Messaging.MessageQueue(_fileQueueName, QueueAccessMode.Receive))
                 {
-                    serverQueue.Formatter = new XmlMessageFormatter(new[] {typeof (FileChunk)});
+                    fileQueue.Formatter = new XmlMessageFormatter(new[] { typeof(FileChunk) });
                     var chunks = new Dictionary<Guid, List<FileChunk>>();
 
                     do
                     {
-                        var message = serverQueue.Receive();
+                        var message = fileQueue.Receive();
                         var chunk = message?.Body as FileChunk;
                         if (chunk != null)
                         {
@@ -123,54 +163,67 @@ namespace MessageQueue.ProcessingService
             return null;
         }
 
-        private void SequanceProcess(List<string> fileSeqence,  Guid agentId)
+        private void SequanceProcess(Guid agentId, CancellationToken cancelToken)
         {
             try
             {
-                lock (fileSeqence)
+                var agentQueueName = GetAgentQueueName(agentId);
+                HostLogger.Get<ProcessingService>().Info("Pdf generation started...");
+                using (var agentQueue = new System.Messaging.MessageQueue(agentQueueName, QueueAccessMode.Receive))
                 {
-                    var cancelToken = _cancelationSource.Token;
-                    if (fileSeqence.Count == 0)
+                    agentQueue.Formatter = new XmlMessageFormatter(new[] { typeof(string) });
+                    var imageNamesMessages = agentQueue.GetAllMessages();
+                    if (!imageNamesMessages.Any())
                     {
                         return;
                     }
 
-                    HostLogger.Get<ProcessingService>().Info("Pdf generation started...");
-
-                    using (var pdfFile = new PdfDocument())
-                    {
-                        foreach (var imageFile in fileSeqence)
-                        {
-                            HostLogger.Get<ProcessingService>().Info($"Adding of file: {imageFile}");
-                            var page = pdfFile.AddPage();
-                            var gfx = XGraphics.FromPdfPage(page);
-                            using (var image = XImage.FromFile(imageFile))
-                            {
-                                var imageWidth = (double)(image.PixelWidth < page.Width ? image.PixelWidth : page.Width);
-                                var imageHeight = (imageWidth / image.PixelWidth) * image.PixelHeight;
-                                gfx.DrawImage(image, 0, 0, imageWidth, imageHeight);
-                            }
-
-                            cancelToken.ThrowIfCancellationRequested();
-                        }
-
-                        HostLogger.Get<ProcessingService>().Info("Pdf generation finished...");
-                        var agentName = agentId.ToString().Substring(15, 4);
-                        var resultPdfFile = Path.Combine(_outputDirectory,
-                            $"{DateTime.Now:yyyy-MMMM-dd(HH-mm-ss)} - agent {agentName}.pdf");
-                        HostLogger.Get<ProcessingService>().Info($"Pdf file saving: \n {resultPdfFile}");
-                        pdfFile.Save(resultPdfFile);
-                    }
-
-                    foreach (var file in fileSeqence)
-                    {
-                        File.Delete(file);
-                    }
+                    var imageNames = imageNamesMessages.Select(x => x.Body as string).ToList();
+                    GeneratePdfFile(agentId, imageNames, cancelToken);
+                    RemoveProcessedItems(imageNames, agentQueue);
                 }
             }
             catch (Exception e)
             {
                 HostLogger.Get<ProcessingService>().Error(e.Message);
+            }
+        }
+
+        private void RemoveProcessedItems(List<string> imageNames, System.Messaging.MessageQueue agentQueue)
+        {
+            foreach (var imageName in imageNames)
+            {
+                File.Delete(imageName);
+                agentQueue.Receive();
+            }
+        }
+
+        private void GeneratePdfFile(Guid agentId, List<string> imageNames, CancellationToken cancelToken)
+        {
+            using (var pdfFile = new PdfDocument())
+            {
+                foreach (var imageName in imageNames)
+                {
+                    HostLogger.Get<ProcessingService>().Info($"Adding of file: {imageName}");
+                    var page = pdfFile.AddPage();
+                    var gfx = XGraphics.FromPdfPage(page);
+                    using (var image = XImage.FromFile(imageName))
+                    {
+                        var imageWidth = (double)(image.PixelWidth < page.Width ? image.PixelWidth : page.Width);
+                        var imageHeight = (imageWidth / image.PixelWidth) * image.PixelHeight;
+                        gfx.DrawImage(image, 0, 0, imageWidth, imageHeight);
+                    }
+
+                    cancelToken.ThrowIfCancellationRequested();
+                }
+
+                HostLogger.Get<ProcessingService>().Info("Pdf generation finished...");
+                var agentName = agentId.ToString().Substring(32, 4);
+                var resultPdfFile = Path.Combine(_outputDirectory,
+                    $"{DateTime.Now:yyyy-MMMM-dd(HH-mm-ss)} - agent {agentName}.pdf");
+                HostLogger.Get<ProcessingService>().Info($"Pdf file saving: \n {resultPdfFile}");
+                pdfFile.Save(resultPdfFile);
+
             }
         }
 
@@ -180,14 +233,34 @@ namespace MessageQueue.ProcessingService
             {
                 lock (_sequances)
                 {
+                    var agentQueueName = GetAgentQueueName(agentId);
                     if (!_sequances.ContainsKey(agentId))
                     {
                         var newSequance = new Sequance(agentId, _sequanceTime, token);
                         newSequance.OnSequanceCompleted += SequanceProcess;
                         _sequances.Add(agentId, newSequance);
+                        if (!System.Messaging.MessageQueue.Exists(agentQueueName))
+                        {
+                            System.Messaging.MessageQueue.Create(agentQueueName);
+                            using (var queuesQueue =
+                                new System.Messaging.MessageQueue(_queuesQueueName, QueueAccessMode.Send))
+                            {
+                                var agentQueue = new AgentQueue
+                                {
+                                    AgentId = agentId,
+                                    QueueName = agentQueueName
+                                };
+                                queuesQueue.Send(new Message(agentQueue));
+                            }
+                        }
                     }
 
-                    _sequances[agentId].AddSequanceItem(filePath);
+                    _sequances[agentId].UpdateSequanceState();
+                    using (var fileQueue = new System.Messaging.MessageQueue(agentQueueName, QueueAccessMode.Send))
+                    {
+                        var message = new Message(filePath);
+                        fileQueue.Send(message);
+                    }
                 }
             }
             else
@@ -198,6 +271,11 @@ namespace MessageQueue.ProcessingService
                 FileHelper.MoveWithRenaming(filePath, trashFilePath);
                 HostLogger.Get<ProcessingService>().Error($"Recieved invalid file {filePath}");
             }
+        }
+
+        private string GetAgentQueueName(Guid agentId)
+        {
+            return $@".\private$\AgentQueue{agentId}";
         }
 
         private bool IsFileValid(string resultFilePath)

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
 
 namespace MessageQueue.ProcessingService
@@ -7,17 +6,15 @@ namespace MessageQueue.ProcessingService
     public class Sequance
     {
         private readonly Guid _agentId;
-        private readonly List<string> _fileSeqence;
         private readonly Timer _sequanceTimer;
         private CancellationToken _cancelationToken;
         private int _sequanceTime;
 
 
-        public event Action<List<string>, Guid> OnSequanceCompleted;
+        public event Action<Guid, CancellationToken> OnSequanceCompleted;
 
         public Sequance()
         {
-            _fileSeqence = new List<string>();
             _sequanceTimer = new Timer(SequanceCompleted);
         }
 
@@ -29,7 +26,7 @@ namespace MessageQueue.ProcessingService
                 return;
             }
 
-            OnSequanceCompleted?.Invoke(_fileSeqence, _agentId);
+            OnSequanceCompleted?.Invoke(_agentId, _cancelationToken);
         }
 
         public Sequance(Guid agentId, int sequanceTime, CancellationToken cancelationToken)
@@ -41,9 +38,8 @@ namespace MessageQueue.ProcessingService
 
         }
 
-        public void AddSequanceItem(string filePath)
+        public void UpdateSequanceState()
         {
-            _fileSeqence.Add(filePath);
             _sequanceTimer.Change(_sequanceTime, _sequanceTime);
         }
     }
