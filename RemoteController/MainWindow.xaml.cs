@@ -1,25 +1,22 @@
-﻿using System;
-using System.Configuration;
-using System.Messaging;
+﻿using System.Configuration;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
 using MessageQueue.RemoteController.Models;
-using MessageBox = System.Windows.MessageBox;
 
 namespace MessageQueue.RemoteController
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow
     {
-        private readonly string _remoteControlQueueName;
+        private readonly DcsRemoteControl _dcsRemoteControl;
 
         public MainWindow()
         {
             InitializeComponent();
+            var remoteControlRecallDelay = int.Parse(ConfigurationManager.AppSettings["RemoteControlRecallDelay"]);
+            var remoteControlQueueName = ConfigurationManager.AppSettings["RemoteControlQueueName"];
+            _dcsRemoteControl = new DcsRemoteControl(remoteControlQueueName, remoteControlRecallDelay);
             LoadProcessingServiceData();
-            _remoteControlQueueName = ConfigurationManager.AppSettings["RemoteControlQueueName"];
         }
 
         private void SelectOutputDirCommand(object sender, RoutedEventArgs e)
@@ -60,30 +57,29 @@ namespace MessageQueue.RemoteController
             LoadProcessingServiceData();
         }
 
-        private void LoadProcessingServiceData()
+        private async void LoadProcessingServiceData()
         {
-            using (var remoteControlQueue = new System.Messaging.MessageQueue(_remoteControlQueueName, QueueAccessMode.SendAndReceive))
-            {
-                var processingServiceDataRequest = new RemoteControlCommand();
-                remoteControlQueue.Send(new System.Messaging.Message(processingServiceDataRequest));
-                var processingServiceMessage = remoteControlQueue.Receive();
-                var processingServiceData = processingServiceMessage?.Body as ProcessingServiceData;
-                if (processingServiceData == null)
-                {
-                    MessageBox.Show("Wrong data recieved!");
-                    return;
-                }
-
-                OutputDirectory.Text = processingServiceData.OutputDirectory;
-                TrashDirectory.Text = processingServiceData.TrashDirectory;
-                SequanceTime.Text = processingServiceData.SequanceTime.ToString();
-                ProcessingServiceStatus.Text = processingServiceData.Status;
-            }
+            ConfigForm.IsEnabled = false;
+            var processingServiceData = await Task.Run(() => _dcsRemoteControl.GetProcessingServiceData());
+            OutputDirectory.Text = processingServiceData.Settings.OutputDirectory;
+            TrashDirectory.Text = processingServiceData.Settings.TrashDirectory;
+            SequanceTime.Text = processingServiceData.Settings.SequanceTime.ToString();
+            ProcessingServiceStatus.Text = processingServiceData.Status;
+            ConfigForm.IsEnabled = true;
         }
 
-        private void UpdateProcessingServiceSettings()
+        private async void UpdateProcessingServiceSettings()
         {
-            throw new NotImplementedException();
+            ConfigForm.IsEnabled = false;
+            var processingServiceSettings = new ProcessingServiceSettings
+            {
+                OutputDirectory = OutputDirectory.Text,
+                TrashDirectory = TrashDirectory.Text,
+                SequanceTime = int.Parse(SequanceTime.Text)
+            };
+
+            await Task.Run(() => _dcsRemoteControl.SetProcessingServiceSettings(processingServiceSettings));
+            ConfigForm.IsEnabled = true;
         }
     }
 }

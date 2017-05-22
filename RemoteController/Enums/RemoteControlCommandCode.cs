@@ -4,7 +4,7 @@
     {
         GetProcessingServiceData,
         GetFileServiceData,
-        SaveProcessingServiceData,
-        SaveFileServiceData
+        SetFileServiceSettings,
+        SetProcessingServiceSettings
     }
 }
