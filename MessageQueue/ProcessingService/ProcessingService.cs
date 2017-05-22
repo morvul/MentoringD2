@@ -21,7 +21,6 @@ namespace MessageQueue.ProcessingService
         private string _outputDirectory;
         private int _sequanceTime;
         private readonly CancellationTokenSource _cancelationSource;
-        private string _fileMonitorQueueName;
         private string _fileQueueName;
         private string _trashDirectory;
 
@@ -41,7 +40,6 @@ namespace MessageQueue.ProcessingService
             try
             {
                 _fileQueueName = ConfigurationManager.AppSettings["FileQueueName"];
-                _fileMonitorQueueName = ConfigurationManager.AppSettings["FileMonitorQueueName"];
                 _sequanceTime = int.Parse(ConfigurationManager.AppSettings["SequanceTime"]);
                 _outputDirectory = ConfigurationManager.AppSettings["OutputDirectory"];
                 _trashDirectory = ConfigurationManager.AppSettings["TrashDirectory"];
@@ -92,7 +90,7 @@ namespace MessageQueue.ProcessingService
                             if (chunk.FilePosition == chunk.FileSize)
                             {
                                 var fileName = SaveFile(chunks[chunk.AgentId]);
-                                ProcessFile(fileName, chunk.AgentId);
+                                ProcessFile(fileName, chunk.AgentId, token);
                                 chunks[chunk.AgentId].Clear();
                             }
                         }
@@ -125,14 +123,14 @@ namespace MessageQueue.ProcessingService
             return null;
         }
 
-        private void SequanceProcess(object state)
+        private void SequanceProcess(List<string> fileSeqence,  Guid agentId)
         {
             try
             {
-                lock (_sequances)
+                lock (fileSeqence)
                 {
                     var cancelToken = _cancelationSource.Token;
-                    if (_fileSeqence.Count == 0)
+                    if (fileSeqence.Count == 0)
                     {
                         return;
                     }
@@ -141,7 +139,7 @@ namespace MessageQueue.ProcessingService
 
                     using (var pdfFile = new PdfDocument())
                     {
-                        foreach (var imageFile in _fileSeqence)
+                        foreach (var imageFile in fileSeqence)
                         {
                             HostLogger.Get<ProcessingService>().Info($"Adding of file: {imageFile}");
                             var page = pdfFile.AddPage();
@@ -157,13 +155,14 @@ namespace MessageQueue.ProcessingService
                         }
 
                         HostLogger.Get<ProcessingService>().Info("Pdf generation finished...");
+                        var agentName = agentId.ToString().Substring(15, 4);
                         var resultPdfFile = Path.Combine(_outputDirectory,
-                            $"{DateTime.Now.ToString("yyyy-MMMM-dd(HH-mm-ss)")}.pdf");
+                            $"{DateTime.Now:yyyy-MMMM-dd(HH-mm-ss)} - agent {agentName}.pdf");
                         HostLogger.Get<ProcessingService>().Info($"Pdf file saving: \n {resultPdfFile}");
                         pdfFile.Save(resultPdfFile);
                     }
 
-                    foreach (var file in _fileSeqence)
+                    foreach (var file in fileSeqence)
                     {
                         File.Delete(file);
                     }
@@ -175,13 +174,20 @@ namespace MessageQueue.ProcessingService
             }
         }
 
-        private void ProcessFile(string filePath, Guid agentId)
+        private void ProcessFile(string filePath, Guid agentId, CancellationToken token)
         {
             if (IsFileValid(filePath))
             {
-                lock (_fileSeqence)
+                lock (_sequances)
                 {
-                    _fileSeqence.Add(filePath);
+                    if (!_sequances.ContainsKey(agentId))
+                    {
+                        var newSequance = new Sequance(agentId, _sequanceTime, token);
+                        newSequance.OnSequanceCompleted += SequanceProcess;
+                        _sequances.Add(agentId, newSequance);
+                    }
+
+                    _sequances[agentId].AddSequanceItem(filePath);
                 }
             }
             else
@@ -192,8 +198,6 @@ namespace MessageQueue.ProcessingService
                 FileHelper.MoveWithRenaming(filePath, trashFilePath);
                 HostLogger.Get<ProcessingService>().Error($"Recieved invalid file {filePath}");
             }
-
-            _sequances[agentId].Change(_sequanceTime, _sequanceTime);
         }
 
         private bool IsFileValid(string resultFilePath)
