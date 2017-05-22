@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Text.RegularExpressions;
 using Topshelf.Logging;
 
 namespace MessageQueue.FileMonitorService
@@ -27,6 +28,11 @@ namespace MessageQueue.FileMonitorService
             }
 
             return resultFilePath;
+        }
+
+        public static bool IsFileValid(string resultFilePath)
+        {
+            return Regex.IsMatch(resultFilePath, @".*[.](jpg|jpeg|png)$");
         }
     }
 }

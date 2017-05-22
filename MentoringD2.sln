@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.26228.9
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "1.IQueryable", "IQueryable\1.IQueryable.csproj", "{4B096486-7457-4911-8280-7BA7A2BB45A0}"
 EndProject
@@ -18,6 +18,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "6.MessageQueue", "6.MessageQueue", "{17D53E43-C25E-414B-9BC9-561DE125CA3B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessingService", "MessageQueue\ProcessingService\ProcessingService.csproj", "{DD45AE62-4861-491A-B11A-44CEABCC2B74}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RemoteController", "RemoteController\RemoteController.csproj", "{F605E355-2185-4F53-8589-AEACA4C597A8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -53,6 +55,10 @@ Global
 		{DD45AE62-4861-491A-B11A-44CEABCC2B74}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DD45AE62-4861-491A-B11A-44CEABCC2B74}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DD45AE62-4861-491A-B11A-44CEABCC2B74}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F605E355-2185-4F53-8589-AEACA4C597A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F605E355-2185-4F53-8589-AEACA4C597A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F605E355-2185-4F53-8589-AEACA4C597A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F605E355-2185-4F53-8589-AEACA4C597A8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -60,5 +66,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{97D33A72-EB09-45FB-9434-3DE226705396} = {17D53E43-C25E-414B-9BC9-561DE125CA3B}
 		{DD45AE62-4861-491A-B11A-44CEABCC2B74} = {17D53E43-C25E-414B-9BC9-561DE125CA3B}
+		{F605E355-2185-4F53-8589-AEACA4C597A8} = {17D53E43-C25E-414B-9BC9-561DE125CA3B}
 	EndGlobalSection
 EndGlobal

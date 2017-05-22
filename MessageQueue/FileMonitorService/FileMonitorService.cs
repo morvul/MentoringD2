@@ -4,7 +4,6 @@ using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Messaging;
-using System.Text.RegularExpressions;
 using Topshelf;
 using Topshelf.Logging;
 
@@ -13,10 +12,11 @@ namespace MessageQueue.FileMonitorService
     internal class DocumentControlSystemService : ServiceControl
     {
         private readonly List<FileSystemWatcher> _fileWatchers;
+        private readonly Guid _instanceId;
+        private string _remoteControlQueueName;
         private string _trashDirectory;
         private string _processedDirectory;
         private string _fileQueueName;
-        private Guid _instanceId;
 
         public DocumentControlSystemService()
         {
@@ -39,6 +39,7 @@ namespace MessageQueue.FileMonitorService
         {
             try
             {
+                _remoteControlQueueName = ConfigurationManager.AppSettings["RemoteControlQueueName"];
                 _fileQueueName = ConfigurationManager.AppSettings["FileQueueName"];
                 _trashDirectory = ConfigurationManager.AppSettings["TrashDirectory"];
                 _processedDirectory = ConfigurationManager.AppSettings["ProcessedDirectory"];
@@ -167,7 +168,7 @@ namespace MessageQueue.FileMonitorService
 
         private void ProcessFile(string sourceFilePath, string fileName)
         {
-            if (IsFileValid(sourceFilePath))
+            if (FileHelper.IsFileValid(sourceFilePath))
             {
                 TranserFile(sourceFilePath);
                 File.Delete(sourceFilePath);
@@ -177,11 +178,6 @@ namespace MessageQueue.FileMonitorService
                 var trashFilePath = Path.Combine(_trashDirectory, fileName);
                 FileHelper.MoveWithRenaming(sourceFilePath, trashFilePath);
             }
-        }
-
-        private bool IsFileValid(string resultFilePath)
-        {
-            return Regex.IsMatch(resultFilePath, @".*[.](jpg|jpeg|png)$");
         }
 
         private void TranserFile(string filePath)

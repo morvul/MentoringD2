@@ -4,7 +4,6 @@ using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Messaging;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using MessageQueue.FileMonitorService;
@@ -18,12 +17,14 @@ namespace MessageQueue.ProcessingService
     internal class ProcessingService : ServiceControl
     {
         private readonly Dictionary<Guid, Sequance> _sequances;
+        private readonly CancellationTokenSource _cancelationSource;
+        private string _remoteControlQueueName;
         private string _outputDirectory;
         private int _sequanceTime;
-        private readonly CancellationTokenSource _cancelationSource;
         private string _fileQueueName;
         private string _trashDirectory;
         private string _queuesQueueName;
+
 
         public ProcessingService()
         {
@@ -45,6 +46,7 @@ namespace MessageQueue.ProcessingService
                 _outputDirectory = ConfigurationManager.AppSettings["OutputDirectory"];
                 _trashDirectory = ConfigurationManager.AppSettings["TrashDirectory"];
                 _queuesQueueName = ConfigurationManager.AppSettings["QueuesQueueName"];
+                _remoteControlQueueName = ConfigurationManager.AppSettings["RemoteControlQueueName"];
                 if (!Directory.Exists(_outputDirectory))
                 {
                     Directory.CreateDirectory(_outputDirectory);
@@ -229,7 +231,7 @@ namespace MessageQueue.ProcessingService
 
         private void ProcessFile(string filePath, Guid agentId, CancellationToken token)
         {
-            if (IsFileValid(filePath))
+            if (FileHelper.IsFileValid(filePath))
             {
                 lock (_sequances)
                 {
@@ -276,11 +278,6 @@ namespace MessageQueue.ProcessingService
         private string GetAgentQueueName(Guid agentId)
         {
             return $@".\private$\AgentQueue{agentId}";
-        }
-
-        private bool IsFileValid(string resultFilePath)
-        {
-            return Regex.IsMatch(resultFilePath, @".*[.](jpg|jpeg|png)$");
         }
     }
 }
