@@ -28,9 +28,13 @@ namespace MessageQueue.ProcessingService
         private string _trashDirectory;
         private string _queuesQueueName;
         private ProcessingStatus _status;
+        private int _processedCount;
+        private int _pdfCount;
 
         public ProcessingService()
         {
+            _pdfCount = 0;
+            _processedCount = 0;
             _sequances = new Dictionary<Guid, Sequance>();
             _cancelationSource = new CancellationTokenSource();
             var remoteControlQueueName = ConfigurationManager.AppSettings["RemoteControlQueueName"];
@@ -243,7 +247,7 @@ namespace MessageQueue.ProcessingService
                     $"{DateTime.Now:yyyy-MMMM-dd(HH-mm-ss)} - agent {agentName}.pdf");
                 HostLogger.Get<ProcessingService>().Info($"Pdf file saving: \n {resultPdfFile}");
                 pdfFile.Save(resultPdfFile);
-
+                _pdfCount++;
             }
 
             _status = ProcessingStatus.Idle;
@@ -274,6 +278,7 @@ namespace MessageQueue.ProcessingService
                                     QueueName = agentQueueName
                                 };
                                 queuesQueue.Send(new Message(agentQueue));
+                                _processedCount++;
                             }
                         }
                     }
@@ -331,7 +336,7 @@ namespace MessageQueue.ProcessingService
             var info = new ProcessingServiceData
             {
                 Settings = settings,
-                Status = _status.ToString()
+                Status = $"{_status} (images processed: {_processedCount}, pdf files generated: {_pdfCount})"
             };
             return info;
         }
