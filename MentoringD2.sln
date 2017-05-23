@@ -19,7 +19,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "6.MessageQueue", "6.Message
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessingService", "MessageQueue\ProcessingService\ProcessingService.csproj", "{DD45AE62-4861-491A-B11A-44CEABCC2B74}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RemoteController", "RemoteController\RemoteController.csproj", "{F605E355-2185-4F53-8589-AEACA4C597A8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RemoteController", ""MessageQueue\RemoteController\RemoteController.csproj", "{F605E355-2185-4F53-8589-AEACA4C597A8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

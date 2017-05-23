@@ -79,6 +79,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AgentQueue.cs" />
+    <Compile Include="Enums\ProcessingStatus.cs" />
     <Compile Include="ProcessingService.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -89,6 +90,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\RemoteController\RemoteController.csproj">
+      <Project>{F605E355-2185-4F53-8589-AEACA4C597A8}</Project>
+      <Name>RemoteController</Name>
+    </ProjectReference>
     <ProjectReference Include="..\FileMonitorService\FileMonitorService.csproj">
       <Project>{97d33a72-eb09-45fb-9434-3de226705396}</Project>
       <Name>FileMonitorService</Name>

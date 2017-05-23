@@ -7,6 +7,9 @@ using System.Messaging;
 using System.Threading;
 using System.Threading.Tasks;
 using MessageQueue.FileMonitorService;
+using MessageQueue.ProcessingService.Enums;
+using MessageQueue.RemoteController;
+using MessageQueue.RemoteController.Models;
 using PdfSharp.Drawing;
 using PdfSharp.Pdf;
 using Topshelf;
@@ -18,22 +21,28 @@ namespace MessageQueue.ProcessingService
     {
         private readonly Dictionary<Guid, Sequance> _sequances;
         private readonly CancellationTokenSource _cancelationSource;
-        private string _remoteControlQueueName;
+        private readonly DcsRemoteControl _remoteControl;
         private string _outputDirectory;
         private int _sequanceTime;
         private string _fileQueueName;
         private string _trashDirectory;
         private string _queuesQueueName;
-
+        private ProcessingStatus _status;
 
         public ProcessingService()
         {
             _sequances = new Dictionary<Guid, Sequance>();
             _cancelationSource = new CancellationTokenSource();
+            var remoteControlQueueName = ConfigurationManager.AppSettings["RemoteControlQueueName"];
+            var remoteControlRecallDelay = int.Parse(ConfigurationManager.AppSettings["RemoteControlRecallDelay"]);
+            _remoteControl = new DcsRemoteControl(remoteControlQueueName, remoteControlRecallDelay);
+            _remoteControl.OnProcessingServiceSettingsChanged += ProcessingServiceSettingsChanged;
         }
 
         public bool Start(HostControl hostControl)
         {
+            _status = ProcessingStatus.JustStarted;
+            _remoteControl.StartProcessingServicesettingsMonitor(GetInfo);
             return Initialize();
         }
 
@@ -41,18 +50,19 @@ namespace MessageQueue.ProcessingService
         {
             try
             {
+                _status = ProcessingStatus.Initialization;
                 _fileQueueName = ConfigurationManager.AppSettings["FileQueueName"];
                 _sequanceTime = int.Parse(ConfigurationManager.AppSettings["SequanceTime"]);
                 _outputDirectory = ConfigurationManager.AppSettings["OutputDirectory"];
                 _trashDirectory = ConfigurationManager.AppSettings["TrashDirectory"];
                 _queuesQueueName = ConfigurationManager.AppSettings["QueuesQueueName"];
-                _remoteControlQueueName = ConfigurationManager.AppSettings["RemoteControlQueueName"];
                 if (!Directory.Exists(_outputDirectory))
                 {
                     Directory.CreateDirectory(_outputDirectory);
                 }
 
                 RestorePreviousSession();
+                _status = ProcessingStatus.Idle;
                 Task.Run(() => ProcessFiles(_cancelationSource.Token));
             }
             catch (Exception e)
@@ -103,6 +113,8 @@ namespace MessageQueue.ProcessingService
 
         public bool Stop(HostControl hostControl)
         {
+            _status = ProcessingStatus.Stopped;
+            _remoteControl.StopProcessingServicesettingsMonitor();
             _cancelationSource.Cancel();
             return true;
         }
@@ -123,6 +135,7 @@ namespace MessageQueue.ProcessingService
                         var chunk = message?.Body as FileChunk;
                         if (chunk != null)
                         {
+                            _status = ProcessingStatus.FileRecieving;
                             if (!chunks.ContainsKey(chunk.AgentId))
                             {
                                 chunks.Add(chunk.AgentId, new List<FileChunk>());
@@ -143,6 +156,8 @@ namespace MessageQueue.ProcessingService
             {
                 HostLogger.Get<ProcessingService>().Error(e.Message);
             }
+
+            _status = ProcessingStatus.Idle;
         }
 
         private string SaveFile(List<FileChunk> chunks)
@@ -189,6 +204,8 @@ namespace MessageQueue.ProcessingService
             {
                 HostLogger.Get<ProcessingService>().Error(e.Message);
             }
+
+            _status = ProcessingStatus.Idle;
         }
 
         private void RemoveProcessedItems(List<string> imageNames, System.Messaging.MessageQueue agentQueue)
@@ -202,6 +219,7 @@ namespace MessageQueue.ProcessingService
 
         private void GeneratePdfFile(Guid agentId, List<string> imageNames, CancellationToken cancelToken)
         {
+            _status = ProcessingStatus.PdfFileGeneration;
             using (var pdfFile = new PdfDocument())
             {
                 foreach (var imageName in imageNames)
@@ -227,6 +245,8 @@ namespace MessageQueue.ProcessingService
                 pdfFile.Save(resultPdfFile);
 
             }
+
+            _status = ProcessingStatus.Idle;
         }
 
         private void ProcessFile(string filePath, Guid agentId, CancellationToken token)
@@ -238,6 +258,7 @@ namespace MessageQueue.ProcessingService
                     var agentQueueName = GetAgentQueueName(agentId);
                     if (!_sequances.ContainsKey(agentId))
                     {
+                        _status = ProcessingStatus.FileProcessing;
                         var newSequance = new Sequance(agentId, _sequanceTime, token);
                         newSequance.OnSequanceCompleted += SequanceProcess;
                         _sequances.Add(agentId, newSequance);
@@ -273,11 +294,46 @@ namespace MessageQueue.ProcessingService
                 FileHelper.MoveWithRenaming(filePath, trashFilePath);
                 HostLogger.Get<ProcessingService>().Error($"Recieved invalid file {filePath}");
             }
+
+            _status = ProcessingStatus.Idle;
         }
 
         private string GetAgentQueueName(Guid agentId)
         {
             return $@".\private$\AgentQueue{agentId}";
+        }
+
+        private void ProcessingServiceSettingsChanged(ProcessingServiceSettings setings)
+        {
+            _outputDirectory = setings.OutputDirectory;
+            _trashDirectory = setings.TrashDirectory;
+            _sequanceTime = setings.SequanceTime;
+            lock (_sequances)
+            {
+                foreach (var sequance in _sequances.Values)
+                {
+                    sequance.UpdateSequanceSettings(_sequanceTime);
+                }
+            }
+
+            HostLogger.Get<ProcessingService>().Info("Settings updated...");
+        }
+
+
+        private ProcessingServiceData GetInfo()
+        {
+            var settings = new ProcessingServiceSettings
+            {
+                OutputDirectory = _outputDirectory,
+                TrashDirectory = _trashDirectory,
+                SequanceTime = _sequanceTime
+            };
+            var info = new ProcessingServiceData
+            {
+                Settings = settings,
+                Status = _status.ToString()
+            };
+            return info;
         }
     }
 }

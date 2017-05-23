@@ -61,6 +61,7 @@
     <Compile Include="Enums\RemoteControlResultCode.cs" />
     <Compile Include="Models\ProcessingServiceSettings.cs" />
     <Compile Include="Models\ProcessingServiceData.cs" />
+    <Compile Include="Models\ProcessingServiceSettingsCommand.cs" />
     <Compile Include="Models\RemoteControlResult.cs" />
     <Compile Include="Models\RemoteControlCommand.cs" />
     <Compile Include="Enums\RemoteControlCommandCode.cs" />

@@ -42,5 +42,11 @@ namespace MessageQueue.ProcessingService
         {
             _sequanceTimer.Change(_sequanceTime, _sequanceTime);
         }
+
+        public void UpdateSequanceSettings(int sequanceTime)
+        {
+            _sequanceTime = sequanceTime;
+            UpdateSequanceState();
+        }
     }
 }
