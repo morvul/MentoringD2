@@ -216,8 +216,8 @@ namespace MessageQueue.ProcessingService
         {
             foreach (var imageName in imageNames)
             {
-                File.Delete(imageName);
                 agentQueue.Receive();
+                File.Delete(imageName);
             }
         }
 
@@ -278,7 +278,6 @@ namespace MessageQueue.ProcessingService
                                     QueueName = agentQueueName
                                 };
                                 queuesQueue.Send(new Message(agentQueue));
-                                _processedCount++;
                             }
                         }
                     }
@@ -288,6 +287,7 @@ namespace MessageQueue.ProcessingService
                     {
                         var message = new Message(filePath);
                         fileQueue.Send(message);
+                        _processedCount++;
                     }
                 }
             }
