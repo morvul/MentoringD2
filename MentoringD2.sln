@@ -19,7 +19,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "6.MessageQueue", "6.Message
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessingService", "MessageQueue\ProcessingService\ProcessingService.csproj", "{DD45AE62-4861-491A-B11A-44CEABCC2B74}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RemoteController", ""MessageQueue\RemoteController\RemoteController.csproj", "{F605E355-2185-4F53-8589-AEACA4C597A8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RemoteController", "MessageQueue\RemoteController\RemoteController.csproj", "{F605E355-2185-4F53-8589-AEACA4C597A8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "7.Debugging", "7.Debugging\7.Debugging.csproj", "{F019BEB7-CA30-40EF-8EFC-02D83D8E8A23}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -59,6 +61,10 @@ Global
 		{F605E355-2185-4F53-8589-AEACA4C597A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F605E355-2185-4F53-8589-AEACA4C597A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F605E355-2185-4F53-8589-AEACA4C597A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F019BEB7-CA30-40EF-8EFC-02D83D8E8A23}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F019BEB7-CA30-40EF-8EFC-02D83D8E8A23}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F019BEB7-CA30-40EF-8EFC-02D83D8E8A23}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F019BEB7-CA30-40EF-8EFC-02D83D8E8A23}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

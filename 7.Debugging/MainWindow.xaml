@@ -1,0 +1,31 @@
+﻿<Window x:Class="Debugging.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        ResizeMode="NoResize"
+        Title="Keygen" Width="525"
+        SizeToContent="Height">
+    <Window.Resources>
+        <Style TargetType="Label">
+            <Setter Property="Margin" Value="2"/>
+        </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="Margin" Value="2"/>
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Margin" Value="2"/>
+        </Style>
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Button Grid.Column="0" Grid.ColumnSpan="2" Content="Generate" Click="GenerateCommand"/>
+        <Label Content="Password" Grid.Row="1" Grid.Column="0"/>
+        <TextBox Name="Password" Grid.Row="1" Grid.Column="1" IsReadOnly="True" Background="Silver"/>
+    </Grid>
+</Window>
