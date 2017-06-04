@@ -1,25 +1,21 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace Profiling
 {
     public class MemoryLeaksGenerator
     {
-        private const int LeakObjSize = 100000;
-        private const int LeakDelay = 1000;
-        private readonly long[] _leakData;
-        private readonly CancellationTokenSource _unmanagedCancellationTokenSource;
-        private readonly CancellationTokenSource _managedCancellationTokenSource;
+        private const int LeakObjSize = 1000000;
+        private const int LeakDelay = 100;
+        private CancellationTokenSource _unmanagedCancellationTokenSource;
+        private CancellationTokenSource _managedCancellationTokenSource;
 
-        public MemoryLeaksGenerator()
-        {
-            _leakData = new long[1000000];
-            _unmanagedCancellationTokenSource = new CancellationTokenSource();
-            _managedCancellationTokenSource = new CancellationTokenSource();
-        }
         public void StartGenerateUnmanagedLeak()
         {
+            _unmanagedCancellationTokenSource = new CancellationTokenSource();
             Task.Run(() => UnmanagedLeakGeneration(_unmanagedCancellationTokenSource.Token));
         }
 
@@ -31,6 +27,7 @@ namespace Profiling
 
         public void StartGenerateManagedLeak()
         {
+            _managedCancellationTokenSource = new CancellationTokenSource();
             Task.Run(() => ManagedLeakGeneration(_managedCancellationTokenSource.Token));
         }
 
@@ -51,9 +48,17 @@ namespace Profiling
         {
             while (!cancelToken.IsCancellationRequested)
             {
-                var itemWithEvent = new Item(_leakData);
-                itemWithEvent.OnEvent += () => {};
+                var itemWithEvent = new Item(new long[LeakObjSize]);
+                itemWithEvent.OnEvent += EventHandler;
                 Thread.Sleep(LeakDelay);
+            }
+        }
+
+        private void EventHandler()
+        {
+            if (_managedCancellationTokenSource.IsCancellationRequested)
+            {
+                MessageBox.Show("Item event!");
             }
         }
     }

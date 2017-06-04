@@ -22,10 +22,12 @@ namespace Profiling
             if (_isUnmanLeakInProgress)
             {
                 _memLeakGenerator.StopGenerateUnmanagedLeak();
+                UnmanagedLeakButton.Text = "Start Unmanaged leak";
             }
             else
             {
                 _memLeakGenerator.StartGenerateUnmanagedLeak();
+                UnmanagedLeakButton.Text = "Stop Unmanaged leak";
             }
 
             _isUnmanLeakInProgress = !_isUnmanLeakInProgress;
@@ -36,10 +38,12 @@ namespace Profiling
             if (_isManLeakInProgress)
             {
                 _memLeakGenerator.StopGenerateManagedLeak();
+                ManagedLeakButton.Text = "Start Managed leak";
             }
             else
             {
                 _memLeakGenerator.StartGenerateManagedLeak();
+                ManagedLeakButton.Text = "Stop Managed leak";
             }
 
             _isManLeakInProgress = !_isManLeakInProgress;
