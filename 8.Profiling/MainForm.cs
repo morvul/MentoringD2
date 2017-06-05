@@ -8,7 +8,7 @@ namespace Profiling
         private readonly MemoryLeaksGenerator _memLeakGenerator;
         private bool _isUnmanLeakInProgress;
         private bool _isManLeakInProgress;
-
+      
         public MainForm()
         {
             InitializeComponent();

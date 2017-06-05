@@ -2,7 +2,6 @@
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace Profiling
 {
@@ -12,6 +11,8 @@ namespace Profiling
         private const int LeakDelay = 100;
         private CancellationTokenSource _unmanagedCancellationTokenSource;
         private CancellationTokenSource _managedCancellationTokenSource;
+
+        public event Action OnEvent;
 
         public void StartGenerateUnmanagedLeak()
         {
@@ -49,17 +50,16 @@ namespace Profiling
             while (!cancelToken.IsCancellationRequested)
             {
                 var itemWithEvent = new Item(new long[LeakObjSize]);
-                itemWithEvent.OnEvent += EventHandler;
+                itemWithEvent.RegisterEvents(this);
+                itemWithEvent.DoWork();
                 Thread.Sleep(LeakDelay);
             }
         }
 
-        private void EventHandler()
+
+        public void Action()
         {
-            if (_managedCancellationTokenSource.IsCancellationRequested)
-            {
-                MessageBox.Show("Item event!");
-            }
+            OnEvent?.Invoke();
         }
     }
 }
